@@ -3,7 +3,7 @@ project(FTPClient)
 
 find_package( Threads REQUIRED )
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 set(LIB lib/TCPClient.cpp lib/TCPServer.cpp)
 set(SOURCE FTPClient.cpp main.cpp)
 

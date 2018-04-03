@@ -24,7 +24,7 @@ bool TCPClient::setup(string address , int port)
     		if ( (he = gethostbyname( address.c_str() ) ) == NULL)
     		{
 		      herror("gethostbyname");
-      		      cout<<"Failed to resolve hostname\n";
+				cout << "Failed to resolve hostname\n";
 		      return false;
     		}
 	   	addr_list = (struct in_addr **) he->h_addr_list;
@@ -97,4 +97,8 @@ string TCPClient::read()
 void TCPClient::exit()
 {
     close( sock );
+}
+
+bool TCPClient::isConnected() {
+	return sock == -1;
 }

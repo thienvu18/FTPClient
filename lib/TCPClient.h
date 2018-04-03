@@ -26,6 +26,8 @@ class TCPClient
 
   public:
     TCPClient();
+
+    bool isConnected();
     bool setup(string address, int port);
     bool Send(string data);
     string receive(int size = 4096);
