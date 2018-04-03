@@ -1,7 +1,11 @@
 cmake_minimum_required(VERSION 3.10)
 project(FTPClient)
 
-set(CMAKE_CXX_STANDARD 11)
-set(SOURCE lib/TCPClient.cpp FTPClient.cpp main.cpp)
+find_package( Threads REQUIRED )
 
-add_executable(FTPClient ${SOURCE})
+set(CMAKE_CXX_STANDARD 11)
+set(LIB lib/TCPClient.cpp lib/TCPServer.cpp)
+set(SOURCE FTPClient.cpp main.cpp)
+
+add_executable(FTPClient ${LIB} ${SOURCE})
+target_link_libraries(FTPClient pthread)

@@ -28,7 +28,9 @@ string FTPClient::getexepath()
 
 void FTPClient::open(const string &serverName, uint16_t port)
 {
-
+    tcp.setup(serverName, port);
+    string rep = tcp.receive();
+    cout << rep;
 }
 
 void FTPClient::list()
@@ -96,7 +98,7 @@ void FTPClient::passive()
 
 }
 
-void FTPClient::help(const string &remoteFile)
+void FTPClient::help()
 {
 
 }
@@ -108,7 +110,7 @@ void quit()
 
 void FTPClient::run()
 {
-
+    open("speedtest.tele2.net", 21);
 }
 
 FTPClient::~FTPClient()
