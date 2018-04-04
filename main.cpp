@@ -39,6 +39,7 @@ int main(int argc, char** argv)
 	if (port != "0") arg.push_back(port);
 
 	ftp.open(arg);
+	ftp.open(arg);
 	ftp.quit();
 	
     return 0;

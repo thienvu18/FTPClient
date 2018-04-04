@@ -100,5 +100,5 @@ void TCPClient::exit()
 }
 
 bool TCPClient::isConnected() {
-	return sock == -1;
+    return sock != -1;
 }

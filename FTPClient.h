@@ -23,7 +23,7 @@ private:
 	bool isRunning;
 	bool verbose = true;
 	bool passive_mode = false;
-	TCPClient control, data;
+    TCPClient control;
     
     string getexepath();
 	int setexepath(const string &path);

@@ -21,14 +21,13 @@ string FTPClient::getexepath()
 int FTPClient::open(const vector<string> &arg) {
 	//TODO: handle connection timeout
 
-//	if (control.isConnected())
-//	{
-//		cout << "Already connected, use close first\n";
-//		return -1;
-//	}
+	if (control.isConnected()) {
+		cout << "Already connected, use close first\n";
+		return -1;
+	}
 
 	string serverName;
-	int port = 21;
+	int port = DEFAULT_PORT;
 	string response_str;
 	int response_code;
 
@@ -115,5 +114,4 @@ int FTPClient::quit() {
 
 FTPClient::~FTPClient() {
 	control.exit();
-	data.exit();
 }
