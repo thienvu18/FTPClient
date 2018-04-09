@@ -141,7 +141,7 @@ int FTPClient::put(const vector<string> &arg) {
     if (arg.size() == 2) remoteFileName = arg[1];
     else remoteFileName = arg[0];
 
-    localFileName = getAbolutePath(relativeFileName);
+    localFileName = getAbsolutePath(relativeFileName);
 
     if (!isExist(localFileName)) {
         cout << "Local: " << localFileName << ": " << "No such file or directory.\n";
@@ -237,10 +237,10 @@ int FTPClient::put(const vector<string> &arg) {
     return 0;
 }
 
-string FTPClient::getAbolutePath(const string &relativePath) {
+string FTPClient::getAbsolutePath(const string &relativePath) {
     string temp = relativePath;
     string fileName;
-    string absolutPath = getCurrentPath();
+    string absolutePath = getCurrentPath();
 
     //Get File/Folder name
     for (int i = temp.length() - 1; i >= 0; i--) {
@@ -257,11 +257,11 @@ string FTPClient::getAbolutePath(const string &relativePath) {
     while (!temp.empty()) {
         char ch = temp[temp.length() - 1];
         if (ch == '/') {
-            if (count == 2 && !absolutPath.empty()) {
-                while (absolutPath[absolutPath.length() - 1] != '/') {
-                    absolutPath.pop_back();
+            if (count == 2 && !absolutePath.empty()) {
+                while (absolutePath[absolutePath.length() - 1] != '/') {
+                    absolutePath.pop_back();
                 }
-                absolutPath.pop_back();
+                absolutePath.pop_back();
             }
             count = 0;
         } else if (ch == '.') {
@@ -270,24 +270,24 @@ string FTPClient::getAbolutePath(const string &relativePath) {
         temp.pop_back();
     }
 
-    return absolutPath + "/" + fileName;
+    return absolutePath + "/" + fileName;
 }
-
-string FTPClient::getParrentPath(int nLevels) {
-    string parentDenotes;
-    string realPath;
-
-    for (int i = 0; i < nLevels; i++) parentDenotes += "../";
-
-    char *temp = realpath(parentDenotes.c_str(), nullptr);
-
-    if (temp != nullptr) {
-        realPath.assign(temp);
-        free(temp);
-    }
-
-    return realPath;
-}
+//
+//string FTPClient::getParentPath(int nLevels) {
+//    string parentDenotes;
+//    string realPath;
+//
+//    for (int i = 0; i < nLevels; i++) parentDenotes += "../";
+//
+//    char *temp = realpath(parentDenotes.c_str(), nullptr);
+//
+//    if (temp != nullptr) {
+//        realPath.assign(temp);
+//        free(temp);
+//    }
+//
+//    return realPath;
+//}
 
 inline bool FTPClient::isExist(const string &fileName) {
     struct stat buffer;

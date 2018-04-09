@@ -113,7 +113,7 @@ int main(int argc, char** argv)
 //	ftp.quit();
 
 //        string path ="~/main.cpp";
-//        cout << getAbolutePath(path);
+//        cout << getAbsolutePath(path);
 
     TCPClient client;
     client.setup("127.0.0.1", 21);

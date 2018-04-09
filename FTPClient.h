@@ -27,13 +27,11 @@ private:
 	bool passive_mode = false;
     TCPClient control;
 
+	int setCurrentPath(const string &path);
 	string getCurrentPath();
 
-	int setCurrentPath(const string &path);
-
-	string getParrentPath(int nLevels);
-
-	string getAbolutePath(const string &fileName);
+	//string getParentPath(int nLevels);	//Unused
+	string getAbsolutePath(const string &fileName);
 
 	inline bool isExist(const string &fileName);
 
@@ -42,6 +40,7 @@ public:
 
 	int open(const vector<string> &arg);
 
+//	int login(const vector<string> &arg);
 //	int list();
 	int put(const vector<string> &arg);
 //	int mput(const vector<string> &arg);//
