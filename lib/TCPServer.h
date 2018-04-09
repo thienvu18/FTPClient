@@ -1,42 +1,44 @@
 #ifndef TCP_SERVER_H
 #define TCP_SERVER_H
 
-#include <iostream>
-#include <vector>
 #include <stdio.h>
+#include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
-#include <sys/types.h> 
+#include <netdb.h>
+#include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include <string.h>
 #include <arpa/inet.h>
-#include <pthread.h>
 
-using namespace std;
+#include <string>
 
-#define MAXPACKETSIZE 4096
+#define BUFSIZE 1024
 
 class TCPServer
 {
-	public:
-	int sockfd, newsockfd, n, pid;
-	struct sockaddr_in serverAddress;
-	struct sockaddr_in clientAddress;
-	pthread_t serverThread;
-	char msg[ MAXPACKETSIZE ];
-	static string Message;
+private:
+    int parent_socket, child_socket;
+    struct sockaddr_in server_address, client_address;
 
-	void setup(int port);
-	string receive();
-	string getMessage();
-	void Send(string msg);
-	void detach();
-	void clean();
+public:
+    TCPServer();
 
-	private:
-	static void * Task(void * argv);
+    int wait_for_connection();
+
+    std::string get_server_port();
+
+    void close_connection();
+
+    int Send(const char *buffer, int buffer_length);
+
+    bool Send(const std::string &msg);
+
+    int Receive(char *buffer, int buffer_length);
+
+    std::string Receive(int nbytes = BUFSIZE);
+
+    ~TCPServer();
 };
 
 #endif

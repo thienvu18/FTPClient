@@ -7,6 +7,8 @@
 #include <climits>
 #include <unistd.h>
 #include <regex>
+#include <sys/stat.h>
+#include <fstream>
 
 #include "lib/TCPClient.h"
 #include "lib/TCPServer.h"
@@ -24,17 +26,24 @@ private:
 	bool verbose = true;
 	bool passive_mode = false;
     TCPClient control;
-    
-    string getexepath();
-	int setexepath(const string &path);
+
+	string getCurrentPath();
+
+	int setCurrentPath(const string &path);
+
+	string getParrentPath(int nLevels);
+
+	string getAbolutePath(const string &fileName);
+
+	inline bool isExist(const string &fileName);
 
 public:
 	FTPClient();
 
 	int open(const vector<string> &arg);
 
-//	int list();//
-//	int put(const vector<string> &arg);
+//	int list();
+	int put(const vector<string> &arg);
 //	int mput(const vector<string> &arg);//
 //	int get(const vector<string> &arg);
 //	int mget(const vector<string> &arg);//

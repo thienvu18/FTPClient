@@ -1,70 +1,79 @@
 #include "TCPServer.h"
 
-string TCPServer::Message;
-
-void* TCPServer::Task(void *arg)
-{
-    int n;
-    int newsockfd = (long)arg;
-    char msg[MAXPACKETSIZE];
-    pthread_detach(pthread_self());
-    while(1)
-    {
-        n=recv(newsockfd,msg,MAXPACKETSIZE,0);
-        if(n==0)
-        {
-            close(newsockfd);
-            break;
-        }
-        msg[n]=0;
-        //send(newsockfd,msg,n,0);
-        Message = string(msg);
+TCPServer::TCPServer() {
+    //Create parent socket
+    parent_socket = socket(AF_INET, SOCK_STREAM, 0);
+    if (parent_socket < 0) {
+        perror("Could not create socket");
+        return;
     }
-    return 0;
-}
 
-void TCPServer::setup(int port)
-{
-    sockfd=socket(AF_INET,SOCK_STREAM,0);
-    memset(&serverAddress,0,sizeof(serverAddress));
-    serverAddress.sin_family=AF_INET;
-    serverAddress.sin_addr.s_addr=htonl(INADDR_ANY);
-    serverAddress.sin_port=htons(port);
-    bind(sockfd,(struct sockaddr *)&serverAddress, sizeof(serverAddress));
-    listen(sockfd,5);
-}
+    //This trick is for reusing the last-used port immediately
+    int optval = 1;
+    setsockopt(parent_socket, SOL_SOCKET, SO_REUSEADDR, (const void *) &optval, sizeof(int));
 
-string TCPServer::receive()
-{
-    string str;
-    while(1)
-    {
-        socklen_t sosize  = sizeof(clientAddress);
-        newsockfd = accept(sockfd,(struct sockaddr*)&clientAddress,&sosize);
-        str = inet_ntoa(clientAddress.sin_addr);
-        pthread_create(&serverThread,NULL,&Task,(void *)newsockfd);
+    //Prepare the server address structure
+    bzero((char *) &server_address, sizeof(server_address));
+    server_address.sin_family = AF_INET;
+    server_address.sin_addr.s_addr = INADDR_ANY;
+    server_address.sin_port = 0;
+
+    //Bind the parent socket to all interface
+    if (bind(parent_socket, (struct sockaddr *) &server_address, sizeof(server_address)) < 0) {
+        perror("Could not bind socket");
+        return;
     }
-    return str;
+
+    ////Let server listen for one connection
+    if (listen(parent_socket, 1) < 0) {
+        perror("Could not set on listening");
+        return;
+    }
 }
 
-string TCPServer::getMessage()
-{
-    return Message;
+int TCPServer::wait_for_connection() {
+    socklen_t clientlen = sizeof(client_address);
+
+    child_socket = accept(parent_socket, (struct sockaddr *) &client_address, &clientlen);
+
+    return child_socket;
 }
 
-void TCPServer::Send(string msg)
-{
-    send(newsockfd,msg.c_str(),msg.length(),0);
+std::string TCPServer::get_server_port() {
+    socklen_t len = sizeof(server_address);
+
+    if (getsockname(parent_socket, (struct sockaddr *) &server_address, &len) == -1) {
+        return std::string();
+    }
+
+    return std::to_string(server_address.sin_port / 256) + "," + std::to_string(server_address.sin_port % 256);
 }
 
-void TCPServer::clean()
-{
-    Message = "";
-    memset(msg, 0, MAXPACKETSIZE);
+TCPServer::~TCPServer() {
+    close(parent_socket);
 }
 
-void TCPServer::detach()
-{
-    close(sockfd);
-    close(newsockfd);
+void TCPServer::close_connection() {
+    close(child_socket);
 }
+
+int TCPServer::Send(const char *buffer, int buffer_length) {
+    return write(child_socket, buffer, buffer_length);
+}
+
+bool TCPServer::Send(const std::string &msg) {
+    return write(child_socket, msg.c_str(), msg.size()) > 0;
+}
+
+int TCPServer::Receive(char *buffer, int buffer_length) {
+    return read(child_socket, buffer, buffer_length);
+}
+
+std::string TCPServer::Receive(int nbytes) {
+    char buffer[nbytes];
+
+    if (read(child_socket, buffer, nbytes) < 0)
+        return std::string();
+    else return std::string(buffer);
+}
+
