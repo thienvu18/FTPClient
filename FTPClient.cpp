@@ -310,7 +310,7 @@ inline bool FTPClient::isExist(const string &fileName) {
     return (stat(fileName.c_str(), &buffer) == 0);
 }
 
-int FTPClient::login(const vector<string> &arg) {
+int FTPClient::login(const vector<string> &args) {
     if (!control.isConnected()) {
         cout << "Not connected.\n";
         return -1;
@@ -319,7 +319,7 @@ int FTPClient::login(const vector<string> &arg) {
     string response_str;
     int response_code;
 
-    control.Send("USER " + arg[0] + "\r\n");
+    control.Send("USER " + args[0] + "\r\n");
     response_str = control.Receive();
     if (verbose) cout << response_str;
 
@@ -327,7 +327,7 @@ int FTPClient::login(const vector<string> &arg) {
     if (response_code != 331) {
         //TODO LOI GUI LENH USER
     } else {
-        control.Send("PASS " + arg[1] +"\r\n");
+        control.Send("PASS " + args[1] +"\r\n");
 
         response_str = control.Receive();
         if (verbose) cout << response_str;
@@ -370,3 +370,145 @@ int FTPClient::pwd() {
 
     return response_code;
 }
+
+int FTPClient::list(const vector<string> &args) {
+    if (!control.isConnected()) {
+        cout << "Not connected.\n";
+        return -1;
+    }
+    if (passive_mode == false) {
+        TCPServer data;
+        string response_str;
+        int response_code;
+
+        //Send port information to server
+        control.Send("PORT " + control.get_client_address() + "," + data.get_server_port() + "\r\n");
+        response_str = control.Receive();
+        if (verbose) cout << response_str;
+
+        response_code = stoi(response_str);
+        if (response_code != 200) {
+            //TODO LOI GUI LENH PORT
+        } else {
+
+            data.wait_for_connection();
+            if(args[0].length()==0)
+            {
+                control.Send("LIST\r\n");
+            }
+            else {
+                control.Send("LIST " + args[0] + "\r\n");
+            }
+            response_str = control.Receive();
+            if (verbose) cout << response_str;
+            response_code = stoi(response_str);
+            if ((response_code == 150)||(response_code == 125)) {
+                string datalist;
+                datalist=data.Receive();
+                cout<<datalist;
+                data.close_connection();
+                response_str = control.Receive();
+                response_code = stoi(response_str);
+                if ((response_code == 226)||(response_code == 250))  {
+                    cout<<"Directory send ok.\n";
+                    return response_code;
+                }
+                else if((response_code == 425)||(response_code == 426)||(response_code == 451))
+                {
+                    cout<<"Not connected\n";
+                    return -1;
+                }
+                else if(response_code == 450)
+                {
+                    cout<<"Requested file action not taken\n";
+                    return -1;
+                }
+                else {
+                    cout<<"false";
+                    cout<<response_code;
+                    //TODO LOI GUI LENH LIST
+                }
+            } else {
+                //TODO LOI GUI LENH LIST
+            }
+
+            data.close_connection();
+        }
+
+    } else {
+        TCPClient data;
+        string response_str;
+        int response_code;
+
+        //Enter passive mode
+        control.Send("PASV\r\n");
+        response_str = control.Receive();
+        if (verbose) cout << response_str;
+        response_code = stoi(response_str);
+        if (response_code != 227) {
+            //TODO LOI GUI LENH PASV
+        } else {
+            string address;
+            string port_low, port_high;
+            int port;
+            regex ipport("(\\d{1,3},\\d{1,3},\\d{1,3},\\d{1,3}),(\\d{1,3}),(\\d{1,3})");
+            smatch sm;
+
+            regex_search(response_str, sm, ipport);
+            address = sm[1];
+            port_high = sm[2];
+            port_low = sm[3];
+
+            for (int i = 0; i < address.size(); i++) {
+                if (address[i] == ',') address.replace(i, 1, ".");
+            }
+            port = stoi(port_high) * 256 + stoi(port_low);
+
+            data.setup(address, port);
+
+            if(args[0].length()==0)
+            {
+                control.Send("LIST\r\n");
+            }
+            else {
+                control.Send("LIST " + args[0] + "\r\n");
+            }
+            response_str = control.Receive();
+            if (verbose) cout << response_str;
+            response_code = stoi(response_str);
+            if ((response_code == 150)||(response_code == 125)) {
+                string datalist;
+                datalist=data.Receive();
+                cout<<datalist;
+                data.close_connection();
+                response_str = control.Receive();
+                response_code = stoi(response_str);
+                if ((response_code == 226)||(response_code == 250))  {
+                    cout<<"Directory send ok.\n";
+                    return response_code;
+                }
+                else if((response_code == 425)||(response_code == 426)||(response_code == 451))
+                {
+                    cout<<"Not connected\n";
+                    return -1;
+                }
+                else if(response_code == 450)
+                {
+                    cout<<"Requested file action not taken\n";
+                    return -1;
+                }
+                else {
+                    cout<<"false";
+                    cout<<response_code;
+                        //TODO LOI GUI LENH LIST
+                }
+            } else {
+                    //TODO LOI GUI LENH LIST
+            }
+        }
+    }
+    return 0;
+}
+
+
+

@@ -25,7 +25,7 @@ private:
 	string current_path;
 	bool isRunning;
 	bool verbose = true;
-    bool passive_mode = true;
+	bool passive_mode = true;
     TCPClient control;
 
 	int setCurrentPath(const string &path);
@@ -42,9 +42,11 @@ public:
 	FTPClient();
 
 	int open(const vector<string> &arg);
+
 	int user(const vector<string> &arg);
+    int password (const vector<string> &arg);
 	int login(const vector<string> &arg);
-//	int list();
+	int list(const vector<string> &arg);
 	int put(const vector<string> &arg);
 //	int mput(const vector<string> &arg);//
 //	int get(const vector<string> &arg);
