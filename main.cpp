@@ -98,26 +98,14 @@ int main(int argc, char** argv)
 {
 	FTPClient ftp;
 
-//	string name;
-//	string port;
-//	cin >> name;
-//	cin >> port;
-//	vector<string> arg;
-//	arg.push_back(name);
-//	if (port != "0") arg.push_back(port);
-//
-//	ftp.open(arg);
-//
-//
-//	ftp.open(arg);
-//	ftp.quit();
-
-//        string path ="~/main.cpp";
-//        cout << getAbsolutePath(path);
-
-    TCPClient client;
-    client.setup("127.0.0.1", 21);
-    cout << client.get_client_address();
-	
+    vector<string> server, user,file;
+    server.push_back("127.0.0.1");
+    user.push_back("van");
+    user.push_back("11041998");
+    file.push_back("B1_5.jpg");
+    file.push_back("abc.jpg");
+    ftp.open(server);
+    ftp.login(user);
+    ftp.put(file);
     return 0;
 }

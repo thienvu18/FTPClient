@@ -39,8 +39,10 @@ public:
 	FTPClient();
 
 	int open(const vector<string> &arg);
+
+	int user(const vector<string> &arg);
     int password (const vector<string> &arg);
-//	int login(const vector<string> &arg);
+	int login(const vector<string> &arg);
 //	int list();
 	int put(const vector<string> &arg);
 //	int mput(const vector<string> &arg);//

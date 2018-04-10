@@ -294,6 +294,26 @@ inline bool FTPClient::isExist(const string &fileName) {
     return (stat(fileName.c_str(), &buffer) == 0);
 }
 
+int FTPClient::user(const vector<string> &arg) {
+    if (!control.isConnected()) {
+        cout << "Not connected.\n";
+        return -1;
+    }
+    string response_str;
+    int response_code;
+    control.Send("USER " + arg[0] + "\r\n");
+    response_str = control.Receive();
+    if (verbose) cout << response_str;
+
+    response_code = stoi(response_str);
+    if (response_code != 331) {
+        //TODO LOI GUI LENH USER
+    } else {
+       cout<<"Please specify the password.\n" ;
+    }
+    return response_code;
+}
+
 int FTPClient::password(const vector<string> &arg) {
     if (!control.isConnected()) {
         cout << "Not connected \n";
@@ -303,7 +323,7 @@ int FTPClient::password(const vector<string> &arg) {
     string response_str;
     int response_code;
 
-    control.Send("PASSWORD " + arg[0] +"\r\n");
+    control.Send("PASS " + arg[0] +"\r\n");
 
     response_str = control.Receive();
     if (verbose) cout << response_str;
@@ -316,6 +336,42 @@ int FTPClient::password(const vector<string> &arg) {
     {
         cout<<"Login incorrect\n";
         cout<<"Login failed\n";
+    }
+    return response_code;
+}
+
+int FTPClient::login(const vector<string> &arg) {
+    if (!control.isConnected()) {
+        cout << "Not connected.\n";
+        return -1;
+    }
+    string response_str;
+    int response_code;
+    control.Send("USER " + arg[0] + "\r\n");
+    response_str = control.Receive();
+    if (verbose) cout << response_str;
+
+    response_code = stoi(response_str);
+    if (response_code != 331) {
+        //TODO LOI GUI LENH USER
+    } else {
+        control.Send("PASS " + arg[1] +"\r\n");
+
+        response_str = control.Receive();
+        if (verbose) cout << response_str;
+
+        response_code = stoi(response_str);
+        if (response_code == 230) {
+            cout<<"Login successful\n";
+        }
+        else if (response_code == 530)
+        {
+            cout<<"Login incorrect\n";
+            cout<<"Login failed\n";
+        } else{
+            //TODO LOI GUI LENH PASS
+        }
+
     }
     return response_code;
 }

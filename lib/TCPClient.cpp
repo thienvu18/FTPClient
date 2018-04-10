@@ -82,7 +82,7 @@ std::string TCPClient::get_client_address() {
 }
 
 bool TCPClient::isConnected() {
-    return sock < 0;
+    return sock > 0;
 }
 
 void TCPClient::close_connection() {
