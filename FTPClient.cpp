@@ -510,5 +510,25 @@ int FTPClient::list(const vector<string> &args) {
     return 0;
 }
 
+int FTPClient::cd(const vector<string> &args) {
+    if (!control.isConnected()) {
+        cout << "Not connected.\n";
+        return -1;
+    }
+    string response_str;
+    int response_code;
+
+    control.Send("CWD " + args[0] + "\r\n");
+    response_str = control.Receive();
+    response_code = stoi(response_str);
+    if (response_code == 250) {
+        cout<<"Directory successfully changed.\n";
+        return response_code;
+    } else {
+        cout<<"Failed to change directory.\n";
+    }
+    return 0;
+}
+
 
 
