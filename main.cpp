@@ -102,14 +102,15 @@ int main(int argc, char** argv)
     server.push_back("127.0.0.1");
     user.push_back("van");
     user.push_back("11041998");
-    file.push_back("/home/van");
+    file.push_back("");
     //file.push_back("abc.jpg");
     ftp.open(server);
     ftp.login(user);
-    ftp.list(file);
-    ftp.cd(file);
-    ftp.quit();
+    //ftp.list(file);
+   // ftp.cd(file);
+    ftp.help(file);
     //ftp.put(file);
     //ftp.pwd();
+    ftp.quit();
     return 0;
 }
