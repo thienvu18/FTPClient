@@ -23,7 +23,7 @@ string FTPClient::getCurrentPath() {
     return realPath;
 }
 
-int FTPClient::open(const vector<string> &arg) {
+int FTPClient::open(const vector<string> &args) {
 	//TODO: handle connection timeout
 
 	if (control.isConnected()) {
@@ -42,13 +42,13 @@ int FTPClient::open(const vector<string> &arg) {
 	regex url(R"(^(((ftp|http|https):\/\/)?((\w+)(\.\w+)+)+)$)");
 
 	//Check number of args.
-	if (arg.empty() && arg.size() > 2) goto usage;
+    if (args.empty() && args.size() > 2) goto usage;
 
-	if (regex_match(arg[0], ip) || regex_match(arg[0], url)) serverName = arg[0];
+    if (regex_match(args[0], ip) || regex_match(args[0], url)) serverName = args[0];
 	else goto invalid_args;
 
-	if (arg.size() == 2) {
-		if (regex_match(arg[1], number)) port = stoi(arg[1]);
+    if (args.size() == 2) {
+        if (regex_match(args[1], number)) port = stoi(args[1]);
 		else goto bad_port;
 	}
 
@@ -96,6 +96,11 @@ int FTPClient::open(const vector<string> &arg) {
 }
 
 int FTPClient::quit() {
+    if (!control.isConnected()) {
+        cout << "Not connected";
+        return -1;
+    }
+
 	string response_str;
 	int response_code;
 
@@ -121,14 +126,14 @@ FTPClient::~FTPClient() {
     control.close_connection();
 }
 
-int FTPClient::put(const vector<string> &arg) {
+int FTPClient::put(const vector<string> &args) {
     if (!control.isConnected()) {
         cout << "Not connected.\n";
         return -1;
     }
 
     //Check number of args.
-    if (arg.empty() && arg.size() > 2) {
+    if (args.empty() && args.size() > 2) {
         cout << "Usage: put local_file [remote_file]\n";
         return -1;
     };
@@ -137,9 +142,9 @@ int FTPClient::put(const vector<string> &arg) {
     string localFileName;
     string remoteFileName;
 
-    relativeFileName = arg[0];
-    if (arg.size() == 2) remoteFileName = arg[1];
-    else remoteFileName = arg[0];
+    relativeFileName = args[0];
+    if (args.size() == 2) remoteFileName = args[1];
+    else remoteFileName = args[0];
 
     localFileName = getAbsolutePath(relativeFileName);
 
@@ -155,7 +160,7 @@ int FTPClient::put(const vector<string> &arg) {
         return -1;
     }
 
-    if (passive_mode != false) {
+    if (passive_mode == false) {
         TCPServer data;
         string response_str;
         int response_code;
@@ -169,25 +174,25 @@ int FTPClient::put(const vector<string> &arg) {
         if (response_code != 200) {
             //TODO LOI GUI LENH PORT
         } else {
+
             data.wait_for_connection();
-        }
+            control.Send("STOR " + remoteFileName + "\r\n");
+            response_str = control.Receive();
+            if (verbose) cout << response_str;
+            response_code = stoi(response_str);
+            if (response_code != 150) {
+                //TODO LOI GUI LENH STORE
+            } else {
+                while (!feof(input)) {
+                    char buff[BUFSIZE];
+                    int nbytes = fread(buff, 1, BUFSIZE, input);
 
-        control.Send("STOR " + remoteFileName + "\r\n");
-        response_str = control.Receive();
-        if (verbose) cout << response_str;
-        response_code = stoi(response_str);
-        if (response_code != 150) {
-            //TODO LOI GUI LENH STORE
-        } else {
-            while (!feof(input)) {
-                char buff[BUFSIZE];
-                int nbytes = fread(buff, 1, BUFSIZE, input);
-
-                data.Send(buff, nbytes);
+                    data.Send(buff, nbytes);
+                }
             }
-        }
 
-        data.close_connection();
+            data.close_connection();
+        }
 
     } else {
         TCPClient data;
@@ -205,14 +210,19 @@ int FTPClient::put(const vector<string> &arg) {
             string address;
             string port_low, port_high;
             int port;
-            regex ipport(R"((\d{1,3},\d{1,3},\d{1,3},\d{1,3}),(\d{1,3}),(\d{1,3}))");
-            cmatch cm;
+            regex ipport("(\\d{1,3},\\d{1,3},\\d{1,3},\\d{1,3}),(\\d{1,3}),(\\d{1,3})");
+            smatch sm;
 
-            regex_match(response_str.c_str(), cm, ipport, regex_constants::match_default);
-            address = cm[0];
-            port_high = cm[1];
-            port_low = cm[2];
+            regex_search(response_str, sm, ipport);
+            address = sm[1];
+            port_high = sm[2];
+            port_low = sm[3];
+
+            for (int i = 0; i < address.size(); i++) {
+                if (address[i] == ',') address.replace(i, 1, ".");
+            }
             port = stoi(port_high) * 256 + stoi(port_low);
+
             data.setup(address, port);
 
             control.Send("STOR " + remoteFileName + "\r\n");

@@ -9,6 +9,7 @@
 #include <regex>
 #include <sys/stat.h>
 #include <fstream>
+#include <string>
 
 #include "lib/TCPClient.h"
 #include "lib/TCPServer.h"
@@ -24,7 +25,7 @@ private:
 	string current_path;
 	bool isRunning;
 	bool verbose = true;
-	bool passive_mode = false;
+    bool passive_mode = true;
     TCPClient control;
 
 	int setCurrentPath(const string &path);
