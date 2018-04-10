@@ -510,5 +510,21 @@ int FTPClient::list(const vector<string> &args) {
     return 0;
 }
 
+int FTPClient::lcd(const vector<string> &arg) {
+
+    cout << "LCD " << arg[0] <<endl;
+    if(isExist(arg[0]) == 1)
+    {
+        int n = chdir(arg[0].c_str());
+        cout<<"Local directory now "<< arg[0] <<endl;
+        return n;
+    }
+    else
+    {
+        cout<<"?Invalid command\n";
+    }
+    return 0;
+}
+
 
 
