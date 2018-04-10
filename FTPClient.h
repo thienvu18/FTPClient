@@ -40,9 +40,7 @@ public:
 	FTPClient();
 
 	int open(const vector<string> &arg);
-
 	int user(const vector<string> &arg);
-    int password (const vector<string> &arg);
 	int login(const vector<string> &arg);
 //	int list();
 	int put(const vector<string> &arg);
@@ -55,7 +53,7 @@ public:
 //	int mdelete(const vector<string> &arg);
 //	int mkdir(const vector<string> &arg);
 //	int rmdir(const vector<string> &arg);
-//	int pwd();//
+    int pwd();//
 //	int passive();
 //	int help();//
 	int quit();

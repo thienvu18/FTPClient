@@ -324,31 +324,6 @@ int FTPClient::user(const vector<string> &arg) {
     return response_code;
 }
 
-int FTPClient::password(const vector<string> &arg) {
-    if (!control.isConnected()) {
-        cout << "Not connected \n";
-        return -1;
-    }
-
-    string response_str;
-    int response_code;
-
-    control.Send("PASS " + arg[0] +"\r\n");
-
-    response_str = control.Receive();
-    if (verbose) cout << response_str;
-
-    response_code = stoi(response_str);
-    if (response_code == 230) {
-        cout<<"Login successful\n";
-    }
-    else if (response_code == 530)
-    {
-        cout<<"Login incorrect\n";
-        cout<<"Login failed\n";
-    }
-    return response_code;
-}
 
 int FTPClient::login(const vector<string> &arg) {
     if (!control.isConnected()) {
@@ -383,5 +358,28 @@ int FTPClient::login(const vector<string> &arg) {
         }
 
     }
+
     return response_code;
+}
+
+int FTPClient::pwd() {
+    if (!control.isConnected()) {
+        cout << "Not connected \n";
+        return -1;
+    }
+    string response_str;
+    int response_code;
+
+        //Send port information to server
+        control.Send("PWD\r\n");
+        response_str = control.Receive();
+        if (verbose) cout << response_str;
+
+        response_code = stoi(response_str);
+        if (response_code == 257) {
+            cout<<response_str;
+        } else {
+            //TODO LOI GUI LENH PWD
+        }
+        return response_code;
 }
