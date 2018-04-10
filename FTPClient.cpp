@@ -526,5 +526,95 @@ int FTPClient::lcd(const vector<string> &arg) {
     return 0;
 }
 
+int FTPClient::cd(const vector<string> &args) {
+    if (!control.isConnected()) {
+        cout << "Not connected.\n";
+        return -1;
+    }
+    string response_str;
+    int response_code;
+
+    control.Send("CWD " + args[0] + "\r\n");
+    response_str = control.Receive();
+    response_code = stoi(response_str);
+    if (response_code == 250) {
+        cout<<"Directory successfully changed.\n";
+        return response_code;
+    } else {
+        cout<<"Failed to change directory.\n";
+    }
+    return 0;
+}
+
+int FTPClient::help(const vector<string> &arg) {
+    if(arg[0].length()==0)
+    {
+        cout<<"Commands may be abbreviated.  Commands are:\nlogin\t\tls\t\t\tdir\nput \t\tget\t\t\tmput\nmget\t\tcd\t\t\tlcd\ndelete\t\tmdelete\t\tmkdir\nrmdir\t\tpwd\t\t\tpassive\nquit\t\texit\n";
+    }
+    else if(arg[0]=="login")
+    {
+        cout<<"login       \tlogin to FTP Server\n";
+    }
+    else if((arg[0]=="ls")||(arg[0]=="dir"))
+    {
+        cout<<arg[0]+"        \tlist contents of remote directory\n";
+    }
+    else if(arg[0]=="put")
+    {
+        cout<<"put       \tsend one file\n";
+    }
+    else if(arg[0]=="get")
+    {
+        cout<<"get       \treceive file\n";
+    }
+    else if(arg[0]=="mput")
+    {
+        cout<<"mput      \tsend multiple files\n";
+    }
+    else if(arg[0]=="mget")
+    {
+        cout<<"mget      \tget multiple files\n";
+    }
+    else if(arg[0]=="cd")
+    {
+        cout<<"cd        \tchange remote working directory\n";
+    }
+    else if(arg[0]=="lcd")
+    {
+        cout<<"lcd       \tchange local working directory\n";
+    }
+    else if(arg[0]=="delete")
+    {
+        cout<<"delete    \tdelete remote file\n";
+    }
+    else if(arg[0]=="mdelete")
+    {
+        cout<<"mdelete   \tdelete multiple files\n";
+    }
+    else if(arg[0]=="mkdir")
+    {
+        cout<<"mkdir     \tmake directory on the remote machine\n";
+    }
+    else if(arg[0]=="rmdir")
+    {
+        cout<<"rmdir     \tremove directory on the remote machine\n";
+    }
+    else if(arg[0]=="pwd")
+    {
+        cout<<"pwd       \tprint working directory on remote machine\n";
+    }
+    else if(arg[0]=="passive")
+    {
+        cout<<"passive   \tenter passive transfer mode\n";
+    }
+    else if((arg[0]=="quit")||(arg[0]=="exit"))
+    {
+        cout<<arg[0]+"      \tterminate ftp session and exit\n";
+    } else{
+        cout<<"?Invalid help command "+arg[0]<<endl;
+    }
+    return 0;
+}
+
 
 
