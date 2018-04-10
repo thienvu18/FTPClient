@@ -261,7 +261,13 @@ string FTPClient::getAbsolutePath(const string &relativePath) {
     }
 
     if (relativePath[0] == '/') return "/" + fileName;
-    else if (relativePath[0] == '~') temp.erase(0, 2);
+    else if (relativePath[0] == '~') {
+        absolutePath = "/home/";
+        string name(getlogin());
+        absolutePath += name;
+
+        temp.erase(0, 2);
+    }
 
     int count = 0;
     while (!temp.empty()) {
@@ -304,34 +310,15 @@ inline bool FTPClient::isExist(const string &fileName) {
     return (stat(fileName.c_str(), &buffer) == 0);
 }
 
-int FTPClient::user(const vector<string> &arg) {
-    if (!control.isConnected()) {
-        cout << "Not connected.\n";
-        return -1;
-    }
-    string response_str;
-    int response_code;
-    control.Send("USER " + arg[0] + "\r\n");
-    response_str = control.Receive();
-    if (verbose) cout << response_str;
-
-    response_code = stoi(response_str);
-    if (response_code != 331) {
-        //TODO LOI GUI LENH USER
-    } else {
-       cout<<"Please specify the password.\n" ;
-    }
-    return response_code;
-}
-
-
 int FTPClient::login(const vector<string> &arg) {
     if (!control.isConnected()) {
         cout << "Not connected.\n";
         return -1;
     }
+
     string response_str;
     int response_code;
+
     control.Send("USER " + arg[0] + "\r\n");
     response_str = control.Receive();
     if (verbose) cout << response_str;
@@ -370,16 +357,16 @@ int FTPClient::pwd() {
     string response_str;
     int response_code;
 
-        //Send port information to server
-        control.Send("PWD\r\n");
-        response_str = control.Receive();
-        if (verbose) cout << response_str;
+    control.Send("PWD\r\n");
+    response_str = control.Receive();
+    if (verbose) cout << response_str;
 
-        response_code = stoi(response_str);
-        if (response_code == 257) {
-            cout<<response_str;
-        } else {
-            //TODO LOI GUI LENH PWD
-        }
-        return response_code;
+    response_code = stoi(response_str);
+    if (response_code == 257) {
+        cout << response_str;
+    } else {
+        //TODO LOI GUI LENH PWD
+    }
+
+    return response_code;
 }

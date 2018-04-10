@@ -32,9 +32,11 @@ private:
 	string getCurrentPath();
 
 	//string getParentPath(int nLevels);	//Unused
+public:
 	string getAbsolutePath(const string &fileName);
 
 	inline bool isExist(const string &fileName);
+
 
 public:
 	FTPClient();
