@@ -107,5 +107,6 @@ int main(int argc, char** argv)
     ftp.open(server);
     ftp.login(user);
     ftp.put(file);
+    ftp.pwd();
     return 0;
 }
