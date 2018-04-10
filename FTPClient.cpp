@@ -65,32 +65,7 @@ int FTPClient::open(const vector<string> &arg) {
         control.close_connection();
 		return -1;
 	}
-int FTPClient::password(const vector<string> &arg)
-{
-    if (!control.isConnected()) {
-        cout << "Not connected \n";
-        return -1;
-    }
 
-    string response_str;
-    int response_code;
-
-    control.Send("PASSWORD " + arg[0] +"\r\n");
-
-    response_str = control.Receive();
-    if (verbose) cout << response_str;
-
-    response_code = stoi(response_str);
-    if (response_code == 230) {
-        cout<<"Login successful\n";
-    }
-    else if (response_code == 530)
-    {
-        cout<<"Login incorrect\n";
-        cout<<"Login failed\n";
-    }
-    return response_code;
-}
 	/*ICP
       120			   Service ready in nnn minutes
          220		   Service ready for new user
@@ -317,4 +292,30 @@ string FTPClient::getAbsolutePath(const string &relativePath) {
 inline bool FTPClient::isExist(const string &fileName) {
     struct stat buffer;
     return (stat(fileName.c_str(), &buffer) == 0);
+}
+
+int FTPClient::password(const vector<string> &arg) {
+    if (!control.isConnected()) {
+        cout << "Not connected \n";
+        return -1;
+    }
+
+    string response_str;
+    int response_code;
+
+    control.Send("PASSWORD " + arg[0] +"\r\n");
+
+    response_str = control.Receive();
+    if (verbose) cout << response_str;
+
+    response_code = stoi(response_str);
+    if (response_code == 230) {
+        cout<<"Login successful\n";
+    }
+    else if (response_code == 530)
+    {
+        cout<<"Login incorrect\n";
+        cout<<"Login failed\n";
+    }
+    return response_code;
 }
