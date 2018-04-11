@@ -51,8 +51,8 @@ public:
 	int put(const vector<string> &arg);
 
     int mput(const vector<string> &arg);//
-//	int get(const vector<string> &arg);
-//	int mget(const vector<string> &arg);//
+	int get(const vector<string> &arg);
+	int mget(const vector<string> &args);//
 	int cd(const vector<string> &args);
 	int lcd(const vector<string> &arg);
 	int delete_cmd(const vector<string> &arg);
