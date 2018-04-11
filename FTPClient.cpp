@@ -641,6 +641,211 @@ int FTPClient::delete_cmd(const vector<string> &arg) {
     return 0;
 }
 
-int FTPClient::mput(const vector<string> &arg) {
+int FTPClient::mput(const vector<string> &arg)
+{
 
+}
+
+int FTPClient::get(const vector <string> &arg) {
+    if (!control.isConnected())
+    {
+        cout << "Not connected.\n";
+        return -1;
+    }
+
+    if (arg.empty() && arg.size() >2)
+    {
+        return -1;
+    }
+
+
+    FILE *output;
+    output = fopen(arg[1].c_str(), "wb");
+    /*if (output == nullptr) {
+        cout << "Can not write file\n";
+        return -1;
+    }*/
+    if (passive_mode == false)
+    {
+        TCPServer data;
+        string response_str;
+        int response_code;
+        data.wait_for_connection();
+        sleep(1);
+
+
+        //Send port information to server
+        control.Send("PORT " + control.get_client_address() + "," + data.get_server_port() + "\r\n");
+        response_str = control.Receive();
+        if (verbose) cout << response_str;
+
+        response_code = stoi(response_str);
+        if (response_code != 200) {
+            //TODO LOI GUI LENH PORT
+        } else {
+            control.Send("RETR " + arg[0]+"\r\n");
+            cout<<"local: "<<arg[1]<<" remote: "<<arg[0]<<endl;
+            response_str = control.Receive();
+            if (verbose) cout << response_str;
+            response_code = stoi(response_str);
+            if ((response_code == 150)||(response_code == 125))
+            {
+                char buff[BUFSIZE];
+                clock_t t1,t2;
+                t1=clock();
+                int n, nSum = 0;
+
+                while ((n=data.Receive(buff,BUFSIZE))>0)
+                {
+                    nSum+=n;
+                    fwrite(buff,1,n,output);
+                }
+                t2=clock();
+
+
+
+                data.close_connection();
+                fclose(output);
+
+                response_str = control.Receive();
+                response_code = stoi(response_str);
+                if ((response_code == 226)||(response_code == 250))  {
+                    float diff ((float)t2-(float)t1);
+                    diff/=CLOCKS_PER_SEC;
+                    float speed = (float)nSum/diff;
+                    cout << fixed;
+                    cout<< nSum <<" bytes received in " << setprecision(5)<< diff <<" secs" <<" ("<<speed/1024 <<"KB/s )\n";
+                    cout<<response_code<<" Transfer complete\n";
+                    return response_code;
+                }
+                else if((response_code == 425)||(response_code == 426)||(response_code == 451))
+                {
+                    cout<<"Not connected\n";
+                    return -1;
+                }
+                else if((response_code == 450)||(response_code == 550))
+                {
+                    cout<<"Requested file action not taken\n";
+                    return -1;
+
+                }
+                else {
+                    cout<<"false";
+                    cout<<response_code;
+                    //TODO LOI GUI LENH GET
+                }
+
+
+            } else {
+                //TODO LOI GUI LENH GET
+            }
+
+            data.close_connection();
+        }
+
+    } else {
+        TCPClient data;
+        string response_str;
+        int response_code;
+
+        //Enter passive mode
+        control.Send("PASV\r\n");
+        response_str = control.Receive();
+        if (verbose) cout << response_str;
+        response_code = stoi(response_str);
+        if (response_code != 227) {
+            //TODO LOI GUI LENH PASV
+        } else {
+            string address;
+            string port_low, port_high;
+            int port;
+            regex ipport("(\\d{1,3},\\d{1,3},\\d{1,3},\\d{1,3}),(\\d{1,3}),(\\d{1,3})");
+            smatch sm;
+
+            regex_search(response_str, sm, ipport);
+            address = sm[1];
+            port_high = sm[2];
+            port_low = sm[3];
+
+            for (int i = 0; i < address.size(); i++) {
+                if (address[i] == ',') address.replace(i, 1, ".");
+            }
+            port = stoi(port_high) * 256 + stoi(port_low);
+
+            data.setup(address, port);
+
+            control.Send("RETR " + arg[0] + arg[1] +"\r\n");
+            response_str = control.Receive();
+            if (verbose) cout << response_str;
+            response_code = stoi(response_str);
+            if ((response_code == 150)||(response_code == 125))
+            {
+                char buff[BUFSIZE];
+                clock_t t1,t2;
+                t1=clock();
+                int n;
+
+                while ((n=data.Receive(buff,BUFSIZE))>0)
+                {
+                    fwrite(buff,1,n,output);
+                }
+                t2=clock();
+
+                fclose(output);
+
+                data.close_connection();
+
+                response_str = control.Receive();
+                response_code = stoi(response_str);
+                if ((response_code == 226)||(response_code == 250))  {
+                    float diff ((float)t2-(float)t1);
+                    diff=CLOCKS_PER_SEC;
+                    float speed;
+                    speed = (float)n / diff;
+                    cout<< n <<" bytes received in" << diff <<" secs" <<"("<< speed <<"KB/s )\n";
+                    cout<<response_code<<" Transfer complete\n";
+                    return response_code;
+                }
+                else if((response_code == 425)||(response_code == 426)||(response_code == 451))
+                {
+                    cout<<"Not connected\n";
+                    return -1;
+                }
+                else if((response_code == 450)||(response_code == 550))
+                {
+                    cout<<"Requested file action not taken\n";
+                    return -1;
+
+                }
+                else {
+                    cout<<"false";
+                    cout<<response_code;
+                    //TODO LOI GUI LENH GET
+                }
+
+
+            } else {
+                //TODO LOI GUI LENH GET
+            }
+
+            data.close_connection();
+        }
+    }
+    return 0;
+}
+
+int FTPClient::mdelete(const vector <string> &arg)
+{
+    if(!control.isConnected())
+    {
+        cout<<"Not connected\n";
+        return -1;
+    }
+
+    for(int i=0;i<arg.size();i++)
+    {
+        delete_cmd((const vector<string> &) arg[i]);
+    }
+
+    return 0;
 }

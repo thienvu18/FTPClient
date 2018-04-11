@@ -11,6 +11,7 @@
 #include <fstream>
 #include <string>
 #include <pthread.h>
+#include <iomanip>
 
 #include "lib/TCPClient.h"
 #include "lib/TCPServer.h"
@@ -51,7 +52,7 @@ public:
 	int put(const vector<string> &arg);
 
     int mput(const vector<string> &arg);//
-//	int get(const vector<string> &arg);
+	int get(const vector<string> &arg);
 //	int mget(const vector<string> &arg);//
 	int cd(const vector<string> &args);
 	int lcd(const vector<string> &arg);
