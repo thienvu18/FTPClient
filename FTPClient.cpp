@@ -141,6 +141,8 @@ int FTPClient::put(const vector<string> &args) {
     string relativeFileName;
     string localFileName;
     string remoteFileName;
+    string response_str;
+    int response_code;
 
     relativeFileName = args[0];
     if (args.size() == 2) remoteFileName = args[1];
@@ -162,11 +164,7 @@ int FTPClient::put(const vector<string> &args) {
 
     if (!passive_mode) {
         TCPServer data;
-        string response_str;
-        int response_code;
-
         data.wait_for_connection();
-        sleep(1);
 
         //Send port information to server
         control.Send("PORT " + control.get_client_address() + "," + data.get_server_port() + "\r\n");
@@ -191,17 +189,10 @@ int FTPClient::put(const vector<string> &args) {
                     data.Send(buff, nbytes);
                 }
             }
-
             data.close_connection();
-            response_str = control.Receive();
-            if (verbose) cout << response_str;
-            response_code = stoi(response_str);
         }
-
     } else {
         TCPClient data;
-        string response_str;
-        int response_code;
 
         //Enter passive mode
         control.Send("PASV\r\n");
@@ -243,10 +234,15 @@ int FTPClient::put(const vector<string> &args) {
                     data.Send(buff, nbytes);
                 }
             }
-
             data.close_connection();
         }
     }
+
+    fclose(input);
+
+    response_str = control.Receive();
+    if (verbose) cout << response_str;
+    response_code = stoi(response_str);
 
     return 0;
 }
@@ -347,7 +343,6 @@ int FTPClient::login(const vector<string> &args) {
         } else{
             //TODO LOI GUI LENH PASS
         }
-
     }
 
     return response_code;
@@ -646,5 +641,6 @@ int FTPClient::delete_cmd(const vector<string> &arg) {
     return 0;
 }
 
+int FTPClient::mput(const vector<string> &arg) {
 
-
+}

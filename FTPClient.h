@@ -49,7 +49,8 @@ public:
 	int login(const vector<string> &arg);
 	int list(const vector<string> &arg);
 	int put(const vector<string> &arg);
-//	int mput(const vector<string> &arg);//
+
+    int mput(const vector<string> &arg);//
 //	int get(const vector<string> &arg);
 //	int mget(const vector<string> &arg);//
 	int cd(const vector<string> &args);
