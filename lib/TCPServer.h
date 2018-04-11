@@ -18,24 +18,24 @@
 class TCPServer
 {
 private:
-    int parent_socket, child_socket;
-    struct sockaddr_in server_address, client_address;
+    static int parent_socket;
+    static int child_socket;
+    struct sockaddr_in server_address;
+
+    pthread_t serverThread;
+
+    static void *wait_accept(void *);
 
 public:
     TCPServer();
 
     int wait_for_connection();
-
     std::string get_server_port();
-
     void close_connection();
 
     int Send(const char *buffer, int buffer_length);
-
     bool Send(const std::string &msg);
-
     int Receive(char *buffer, int buffer_length);
-
     std::string Receive(int nbytes = BUFSIZE);
 
     ~TCPServer();

@@ -160,10 +160,13 @@ int FTPClient::put(const vector<string> &args) {
         return -1;
     }
 
-    if (passive_mode == false) {
+    if (!passive_mode) {
         TCPServer data;
         string response_str;
         int response_code;
+
+        data.wait_for_connection();
+        sleep(1);
 
         //Send port information to server
         control.Send("PORT " + control.get_client_address() + "," + data.get_server_port() + "\r\n");
@@ -174,8 +177,6 @@ int FTPClient::put(const vector<string> &args) {
         if (response_code != 200) {
             //TODO LOI GUI LENH PORT
         } else {
-
-            data.wait_for_connection();
             control.Send("STOR " + remoteFileName + "\r\n");
             response_str = control.Receive();
             if (verbose) cout << response_str;
@@ -192,6 +193,9 @@ int FTPClient::put(const vector<string> &args) {
             }
 
             data.close_connection();
+            response_str = control.Receive();
+            if (verbose) cout << response_str;
+            response_code = stoi(response_str);
         }
 
     } else {

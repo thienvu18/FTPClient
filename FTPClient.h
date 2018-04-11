@@ -10,6 +10,7 @@
 #include <sys/stat.h>
 #include <fstream>
 #include <string>
+#include <pthread.h>
 
 #include "lib/TCPClient.h"
 #include "lib/TCPServer.h"
@@ -25,18 +26,18 @@ private:
 	string current_path;
 	bool isRunning;
 	bool verbose = true;
-    bool passive_mode = true;
+    bool passive_mode = false;
     TCPClient control;
 
 	int setCurrentPath(const string &path);
 	string getCurrentPath();
 
 	//string getParentPath(int nLevels);	//Unused
-public:
 	string getAbsolutePath(const string &fileName);
 
 	inline bool isExist(const string &fileName);
 
+    void *wait_for_connecting(TCPServer &data, void *threadid);
 
 public:
 	FTPClient();

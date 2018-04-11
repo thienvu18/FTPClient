@@ -8,3 +8,4 @@ set(LIB lib/TCPClient.cpp lib/TCPServer.cpp)
 set(SOURCE FTPClient.cpp main.cpp)
 
 add_executable(FTPClient ${LIB} ${SOURCE})
+target_link_libraries(FTPClient pthread)

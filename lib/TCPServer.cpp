@@ -1,5 +1,8 @@
 #include "TCPServer.h"
 
+int TCPServer::parent_socket = -1;
+int TCPServer::child_socket = -1;
+
 TCPServer::TCPServer() {
     //Create parent socket
     parent_socket = socket(AF_INET, SOCK_STREAM, 0);
@@ -16,7 +19,7 @@ TCPServer::TCPServer() {
     bzero((char *) &server_address, sizeof(server_address));
     server_address.sin_family = AF_INET;
     server_address.sin_addr.s_addr = INADDR_ANY;
-    server_address.sin_port = 0;
+    server_address.sin_port = htons(6685);
 
     //Bind the parent socket to all interface
     if (bind(parent_socket, (struct sockaddr *) &server_address, sizeof(server_address)) < 0) {
@@ -25,28 +28,34 @@ TCPServer::TCPServer() {
     }
 
     ////Let server listen for one connection
-    if (listen(parent_socket, 1) < 0) {
+    if (listen(parent_socket, 5) < 0) {
         perror("Could not set on listening");
         return;
     }
 }
 
 int TCPServer::wait_for_connection() {
-    socklen_t clientlen = sizeof(client_address);
+    int rc;
+    int data = 0;
 
-    child_socket = accept(parent_socket, (struct sockaddr *) &client_address, &clientlen);
+    rc = pthread_create(&serverThread, NULL, &wait_accept, 0);
+    if (rc) {
+        printf("Error:unable to create thread\n");
+        exit(-1);
+    }
 
-    return child_socket;
+    return rc;
 }
 
 std::string TCPServer::get_server_port() {
-    socklen_t len = sizeof(server_address);
+//    socklen_t len = sizeof(server_address);
+//
+//    if (getsockname(child_socket, (struct sockaddr *) &server_address, &len) == -1) {
+//        return std::string();
+//    }
 
-    if (getsockname(parent_socket, (struct sockaddr *) &server_address, &len) == -1) {
-        return std::string();
-    }
-
-    return std::to_string(server_address.sin_port / 256) + "," + std::to_string(server_address.sin_port % 256);
+    return std::to_string(ntohs(server_address.sin_port) / 256) + "," +
+           std::to_string(ntohs(server_address.sin_port) % 256);
 }
 
 TCPServer::~TCPServer() {
@@ -77,3 +86,10 @@ std::string TCPServer::Receive(int nbytes) {
     else return std::string(buffer);
 }
 
+void *TCPServer::wait_accept(void *) {
+    socklen_t add_size;
+    struct sockaddr_in client_address;
+
+    pthread_detach(pthread_self());
+    child_socket = accept(parent_socket, (struct sockaddr *) &client_address, &add_size);
+}
