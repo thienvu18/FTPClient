@@ -58,9 +58,12 @@ public:
 	int lcd(const vector<string> &arg);
 	int delete_cmd(const vector<string> &arg);
 	int mdelete(const vector<string> &arg);
-//	int mkdir(const vector<string> &arg);
-//	int rmdir(const vector<string> &arg);
-    int pwd();//
+
+    int mkdir(const vector<string> &arg);
+
+    int rmdir(const vector<string> &arg);
+
+    int pwd();
 	int passive();
 	int help(const vector<string> &arg);
 	int quit();
