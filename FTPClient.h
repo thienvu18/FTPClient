@@ -53,12 +53,12 @@ public:
 //	int mget(const vector<string> &arg);//
 	int cd(const vector<string> &args);
 	int lcd(const vector<string> &arg);
-//	int delete_cmd(const vector<string> &arg);
-//	int mdelete(const vector<string> &arg);
+	int delete_cmd(const vector<string> &arg);
+	int mdelete(const vector<string> &arg);
 //	int mkdir(const vector<string> &arg);
 //	int rmdir(const vector<string> &arg);
     int pwd();//
-//	int passive();
+	int passive();
 	int help(const vector<string> &arg);
 	int quit();
 

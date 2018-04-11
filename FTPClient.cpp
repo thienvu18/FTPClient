@@ -416,12 +416,10 @@ int FTPClient::list(const vector<string> &args) {
                 else if((response_code == 425)||(response_code == 426)||(response_code == 451))
                 {
                     cout<<"Not connected\n";
-                    return -1;
                 }
                 else if(response_code == 450)
                 {
                     cout<<"Requested file action not taken\n";
-                    return -1;
                 }
                 else {
                     cout<<"false";
@@ -490,12 +488,10 @@ int FTPClient::list(const vector<string> &args) {
                 else if((response_code == 425)||(response_code == 426)||(response_code == 451))
                 {
                     cout<<"Not connected\n";
-                    return -1;
                 }
                 else if(response_code == 450)
                 {
                     cout<<"Requested file action not taken\n";
-                    return -1;
                 }
                 else {
                     cout<<"false";
@@ -596,6 +592,36 @@ int FTPClient::help(const vector<string> &arg) {
         cout<<arg[0]+"      \tterminate ftp session and exit\n";
     } else{
         cout<<"?Invalid help command "+arg[0]<<endl;
+    }
+    return 0;
+}
+
+int FTPClient::passive() {
+    passive_mode=not(passive_mode);
+    return 0;
+}
+
+int FTPClient::delete_cmd(const vector<string> &arg) {
+    if (!control.isConnected()) {
+        cout << "Not connected.\n";
+        return -1;
+    }
+    string response_str;
+    int response_code;
+
+    control.Send("DELE " + arg[0] + "\r\n");
+    response_str = control.Receive();
+    response_code = stoi(response_str);
+    if (response_code == 250) {
+        cout<<"Delete operation successful\n";
+        return response_code;
+    }
+    else if((response_code == 450)||(response_code == 550))
+    {
+        cout<<"Delete operation failed\n";
+    }
+    else {
+        //todo loi go lenh delete
     }
     return 0;
 }
