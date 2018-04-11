@@ -98,19 +98,20 @@ int main(int argc, char** argv)
 {
 	FTPClient ftp;
 
-    vector<string> server, user;
+    vector<string> server, user, file;
     server.push_back("127.0.0.1");
-    user.push_back("van");
-    user.push_back("11041998");
-//    file.push_back("B1_5.jpg");
+    user.push_back("thienvu");
+    user.push_back("18022804");
+    file.push_back("ABADSS");
 //    file.push_back("abc.jpg");
     ftp.open(server);
     ftp.login(user);
- //   ftp.list(file);
 //    ftp.put(file);
 //    ftp.pwd();
     vector<string> ls;
-    //ls.push_back("");
+    ftp.mkdir(file);
+    ftp.list(ls);
+    ftp.rmdir(file);
     ftp.list(ls);
     return 0;
 }

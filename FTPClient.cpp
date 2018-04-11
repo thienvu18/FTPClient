@@ -651,11 +651,7 @@ int FTPClient::delete_cmd(const vector<string> &arg) {
     return 0;
 }
 
-int FTPClient::mput(const vector<string> &arg) {
-
-}
-
-int FTPClient::mget(const vector<string> &args) {
+int FTPClient::mput(const vector<string> &args) {
     if (!control.isConnected()) {
         cout << "Not connected.\n";
         return -1;
@@ -663,145 +659,223 @@ int FTPClient::mget(const vector<string> &args) {
 
     //Check number of args.
     if (args.empty()) {
-        cout << "Usage\n";
+        cout << "Usage: mput local_file_1 [local_file_2] [...]\n";
+        return -1;
+    };
+
+    for (int i = 0; i < args.size(); i++) {
+        vector<string> temp;
+        temp.push_back(args[i]);
+        put(temp);
+        temp.clear();
+    }
+}
+
+int FTPClient::mkdir(const vector<string> &arg) {
+    if (!control.isConnected()) {
+        cout << "Not connected.\n";
         return -1;
     }
-    if(args[0]=="*" &&args.size()==1) {
-        string response_str;
-        int response_code;
-        if (!passive_mode) {
-            TCPServer data;
-            data.wait_for_connection();
-            sleep(1);
 
-            //Send port information to server
-            control.Send("PORT " + control.get_client_address() + "," + data.get_server_port() + "\r\n");
-            response_str = control.Receive();
-            if (verbose) cout << response_str;
+    //Check number of args.
+    if (arg.empty()) {
+        cout << "Usage: mkdir folder_name\n";
+        return -1;
+    };
 
-            response_code = stoi(response_str);
-            if (response_code != 200) {
-                //TODO LOI GUI LENH PORT
-            } else {
-                 control.Send("NLST " + args[0] + "\r\n");
-                response_str = control.Receive();
-                if (verbose) cout << response_str;
-                response_code = stoi(response_str);
-                if ((response_code == 150) || (response_code == 125)) {
-                    string datalist;
-                    datalist = data.Receive();
-                    data.close_connection();
-                    response_str = control.Receive();
-                    response_code = stoi(response_str);
-                    if ((response_code == 226) || (response_code == 250)) {
-                        cout << "Directory send ok.\n";
-                        return response_code;
-                    } else if ((response_code == 425) || (response_code == 426) || (response_code == 451)) {
-                        cout << "Not connected\n";
-                    } else if (response_code == 450) {
-                        cout << "Requested file action not taken\n";
-                    } else {
-                        //TODO LOI GUI LENH mget
-                    }
-                    vector<string>nlist;
-                    string nametemp;
-                    for(int i=0;i<datalist.length();i++)
-                    {
-                        if(datalist[i]!=0x0d)
-                        {
-                            nametemp.push_back(datalist[i]);
-                        } else{
-                            i++;
-                            nlist.push_back(nametemp);
-                            nametemp="";
-                            get(nlist);
-                            nlist.clear();
-                        }
-                    }
+    string response_str;
+    int response_code;
 
-                } else {
-                    //TODO LOI GUI LENH mget
-                }
-                data.close_connection();
-            }
-        } else {
-            TCPClient data;
+    control.Send("MKD " + arg[0] + "\r\n");
 
-            //Enter passive mode
-            control.Send("PASV\r\n");
-            response_str = control.Receive();
-            if (verbose) cout << response_str;
-            response_code = stoi(response_str);
-            if (response_code != 227) {
-                //TODO LOI GUI LENH PASV
-            } else {
-                string address;
-                string port_low, port_high;
-                int port;
-                regex ipport("(\\d{1,3},\\d{1,3},\\d{1,3},\\d{1,3}),(\\d{1,3}),(\\d{1,3})");
-                smatch sm;
+    response_str = control.Receive();
+    response_code = stoi(response_str);
+    if (verbose) cout << response_str;
 
-                regex_search(response_str, sm, ipport);
-                address = sm[1];
-                port_high = sm[2];
-                port_low = sm[3];
-
-                for (int i = 0; i < address.size(); i++) {
-                    if (address[i] == ',') address.replace(i, 1, ".");
-                }
-                port = stoi(port_high) * 256 + stoi(port_low);
-
-                data.setup(address, port);
-
-                control.Send("NLST " + args[0] + "\r\n");
-                response_str = control.Receive();
-                if (verbose) cout << response_str;
-                response_code = stoi(response_str);
-                if ((response_code == 150) || (response_code == 125)) {
-                    string datalist;
-                    datalist = data.Receive();
-                    data.close_connection();
-                    response_str = control.Receive();
-                    response_code = stoi(response_str);
-                    if ((response_code == 226) || (response_code == 250)) {
-                        cout << "Directory send ok.\n";
-                        return response_code;
-                    } else if ((response_code == 425) || (response_code == 426) || (response_code == 451)) {
-                        cout << "Not connected\n";
-                    } else if (response_code == 450) {
-                        cout << "Requested file action not taken\n";
-                    } else {
-                        //TODO LOI GUI LENH mget
-                    }
-                    vector<string>nlist;
-                    string nametemp;
-                    for(int i=0;i<datalist.length();i++)
-                    {
-                        if(datalist[i]!=0x0d)
-                        {
-                            nametemp.push_back(datalist[i]);
-                        } else{
-                            i++;
-                            nlist.push_back(nametemp);
-                            nametemp="";
-                            get(nlist);
-                            nlist.clear();
-                        }
-                    }
-
-                } else {
-                    //TODO LOI GUI LENH mget
-                }
-
-                data.close_connection();
-            }
-        }
-    } else{
-        for(int i=0;i<args.size();i++)
-        {
-            get((const vector<string> &)args[i]);
-        }
+    if (response_code == 257) {
+        return response_code;
+    } else {
+        return -1;
     }
-    return 0;
 }
+
+int FTPClient::rmdir(const vector<string> &arg) {
+    if (!control.isConnected()) {
+        cout << "Not connected.\n";
+        return -1;
+    }
+
+    //Check number of args.
+    if (arg.empty()) {
+        cout << "Usage: mkdir folder_name\n";
+        return -1;
+    };
+
+    string response_str;
+    int response_code;
+
+    control.Send("RMD " + arg[0] + "\r\n");
+
+    response_str = control.Receive();
+    response_code = stoi(response_str);
+    if (verbose) cout << response_str;
+
+    if (response_code == 250) {
+        return response_code;
+    } else {
+        return -1;
+    }
+}
+
+
+
+//int FTPClient::mget(const vector<string> &args) {
+//    if (!control.isConnected()) {
+//        cout << "Not connected.\n";
+//        return -1;
+//    }
+//
+//    //Check number of args.
+//    if (args.empty()) {
+//        cout << "Usage\n";
+//        return -1;
+//    }
+//    if(args[0]=="*" &&args.size()==1) {
+//        string response_str;
+//        int response_code;
+//        if (!passive_mode) {
+//            TCPServer data;
+//            data.wait_for_connection();
+//            sleep(1);
+//
+//            //Send port information to server
+//            control.Send("PORT " + control.get_client_address() + "," + data.get_server_port() + "\r\n");
+//            response_str = control.Receive();
+//            if (verbose) cout << response_str;
+//
+//            response_code = stoi(response_str);
+//            if (response_code != 200) {
+//                //TODO LOI GUI LENH PORT
+//            } else {
+//                 control.Send("NLST " + args[0] + "\r\n");
+//                response_str = control.Receive();
+//                if (verbose) cout << response_str;
+//                response_code = stoi(response_str);
+//                if ((response_code == 150) || (response_code == 125)) {
+//                    string datalist;
+//                    datalist = data.Receive();
+//                    data.close_connection();
+//                    response_str = control.Receive();
+//                    response_code = stoi(response_str);
+//                    if ((response_code == 226) || (response_code == 250)) {
+//                        cout << "Directory send ok.\n";
+//                        return response_code;
+//                    } else if ((response_code == 425) || (response_code == 426) || (response_code == 451)) {
+//                        cout << "Not connected\n";
+//                    } else if (response_code == 450) {
+//                        cout << "Requested file action not taken\n";
+//                    } else {
+//                        //TODO LOI GUI LENH mget
+//                    }
+//                    vector<string>nlist;
+//                    string nametemp;
+//                    for(int i=0;i<datalist.length();i++)
+//                    {
+//                        if(datalist[i]!=0x0d)
+//                        {
+//                            nametemp.push_back(datalist[i]);
+//                        } else{
+//                            i++;
+//                            nlist.push_back(nametemp);
+//                            nametemp="";
+//                            get(nlist);
+//                            nlist.clear();
+//                        }
+//                    }
+//
+//                } else {
+//                    //TODO LOI GUI LENH mget
+//                }
+//                data.close_connection();
+//            }
+//        } else {
+//            TCPClient data;
+//
+//            //Enter passive mode
+//            control.Send("PASV\r\n");
+//            response_str = control.Receive();
+//            if (verbose) cout << response_str;
+//            response_code = stoi(response_str);
+//            if (response_code != 227) {
+//                //TODO LOI GUI LENH PASV
+//            } else {
+//                string address;
+//                string port_low, port_high;
+//                int port;
+//                regex ipport("(\\d{1,3},\\d{1,3},\\d{1,3},\\d{1,3}),(\\d{1,3}),(\\d{1,3})");
+//                smatch sm;
+//
+//                regex_search(response_str, sm, ipport);
+//                address = sm[1];
+//                port_high = sm[2];
+//                port_low = sm[3];
+//
+//                for (int i = 0; i < address.size(); i++) {
+//                    if (address[i] == ',') address.replace(i, 1, ".");
+//                }
+//                port = stoi(port_high) * 256 + stoi(port_low);
+//
+//                data.setup(address, port);
+//
+//                control.Send("NLST " + args[0] + "\r\n");
+//                response_str = control.Receive();
+//                if (verbose) cout << response_str;
+//                response_code = stoi(response_str);
+//                if ((response_code == 150) || (response_code == 125)) {
+//                    string datalist;
+//                    datalist = data.Receive();
+//                    data.close_connection();
+//                    response_str = control.Receive();
+//                    response_code = stoi(response_str);
+//                    if ((response_code == 226) || (response_code == 250)) {
+//                        cout << "Directory send ok.\n";
+//                        return response_code;
+//                    } else if ((response_code == 425) || (response_code == 426) || (response_code == 451)) {
+//                        cout << "Not connected\n";
+//                    } else if (response_code == 450) {
+//                        cout << "Requested file action not taken\n";
+//                    } else {
+//                        //TODO LOI GUI LENH mget
+//                    }
+//                    vector<string>nlist;
+//                    string nametemp;
+//                    for(int i=0;i<datalist.length();i++)
+//                    {
+//                        if(datalist[i]!=0x0d)
+//                        {
+//                            nametemp.push_back(datalist[i]);
+//                        } else{
+//                            i++;
+//                            nlist.push_back(nametemp);
+//                            nametemp="";
+//                            get(nlist);
+//                            nlist.clear();
+//                        }
+//                    }
+//
+//                } else {
+//                    //TODO LOI GUI LENH mget
+//                }
+//
+//                data.close_connection();
+//            }
+//        }
+//    } else{
+//        for(int i=0;i<args.size();i++)
+//        {
+//            get((const vector<string> &)args[i]);
+//        }
+//    }
+//    return 0;
+//}
 
