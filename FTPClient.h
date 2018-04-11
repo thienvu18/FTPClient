@@ -43,29 +43,38 @@ private:
 public:
 	FTPClient();
 
-	int open(const vector<string> &arg);
+	int open(const vector<string> &args);
 
-	int user(const vector<string> &arg);
-    int password (const vector<string> &arg);
-	int login(const vector<string> &arg);
-	int list(const vector<string> &arg);
-	int put(const vector<string> &arg);
+	int user(const vector<string> &args);
 
-    int mput(const vector<string> &arg);//
-	int get(const vector<string> &arg);
-//	int mget(const vector<string> &arg);//
+	int password(const vector<string> &args);
+
+	int login(const vector<string> &args);
+
+	int list(const vector<string> &args);
+
+	int put(const vector<string> &args);
+
+	int mput(const vector<string> &args);//
+	int get(const vector<string> &args);
+
+	int mget(const vector<string> &args);//
 	int cd(const vector<string> &args);
-	int lcd(const vector<string> &arg);
-	int delete_cmd(const vector<string> &arg);
-	int mdelete(const vector<string> &arg);
 
-    int mkdir(const vector<string> &arg);
+	int lcd(const vector<string> &args);
 
-    int rmdir(const vector<string> &arg);
+	int delete_cmd(const vector<string> &args);
+
+	int mdelete(const vector<string> &args);
+
+	int mkdir(const vector<string> &args);
+
+	int rmdir(const vector<string> &args);
 
     int pwd();
 	int passive();
-	int help(const vector<string> &arg);
+
+	int help(const vector<string> &args);
 	int quit();
 
 	~FTPClient();
