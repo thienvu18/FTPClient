@@ -42,6 +42,8 @@ private:
 
     bool establish_data_connection(void *data_connection);
 
+    int receive_response_from_server();
+
 public:
 	FTPClient();
 

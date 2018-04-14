@@ -142,8 +142,6 @@ int FTPClient::put(const vector<string> &args) {
     string relativeFileName;
     string localFileName;
     string remoteFileName;
-    string response_str;
-    int response_code;
 
     relativeFileName = args[0];
     if (args.size() == 2) remoteFileName = args[1];
@@ -172,11 +170,8 @@ int FTPClient::put(const vector<string> &args) {
     };
 
     control.Send("STOR " + remoteFileName + "\r\n");
-    response_str = control.Receive();
-    if (verbose) cout << response_str;
-    response_code = stoi(response_str);
 
-    if (response_code == 150) {
+    if (receive_response_from_server() == 150) {
         char buff[BUFSIZE];
         while (!feof(input)) {
             int nbytes = fread(buff, 1, BUFSIZE, input);
@@ -193,12 +188,8 @@ int FTPClient::put(const vector<string> &args) {
         }
     }
 
-    response_str = control.Receive();
-    if (verbose) cout << response_str;
-    response_code = stoi(response_str);
-
     fclose(input);
-    return 0;
+    return receive_response_from_server();
 }
 
 string FTPClient::getAbsolutePath(const string &relativePath) {
@@ -996,5 +987,14 @@ bool FTPClient::establish_data_connection(void *data_connection) {
 
         return response_code == 200;
     }
+}
+
+int FTPClient::receive_response_from_server() {
+    string response_str = control.Receive();
+    int response_code = stoi(response_str);
+
+    if (verbose) cout << response_str;
+
+    return response_code;
 }
 
