@@ -288,22 +288,6 @@ string FTPClient::getAbsolutePath(const string &relativePath) {
 
     return absolutePath + "/" + fileName;
 }
-//
-//string FTPClient::getParentPath(int nLevels) {
-//    string parentDenotes;
-//    string realPath;
-//
-//    for (int i = 0; i < nLevels; i++) parentDenotes += "../";
-//
-//    char *temp = realpath(parentDenotes.c_str(), nullptr);
-//
-//    if (temp != nullptr) {
-//        realPath.assign(temp);
-//        free(temp);
-//    }
-//
-//    return realPath;
-//}
 
 inline bool FTPClient::isExist(const string &fileName) {
     struct stat buffer;
