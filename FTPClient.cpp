@@ -837,7 +837,10 @@ int FTPClient::mdelete(const vector<string> &args)
 
     for (int i = 0; i < args.size(); i++)
     {
-        delete_cmd((const vector<string> &) args[i]);
+        vector<string> temp;
+        temp.push_back(args[i]);
+        delete_cmd(temp);
+        temp.clear();
     }
 
     return 0;
@@ -927,7 +930,7 @@ int FTPClient::mget(const vector<string> &args) {
             if (response_code != 200) {
                 //TODO LOI GUI LENH PORT
             } else {
-                control.Send("NLST " + args[0] + "\r\n");
+                 control.Send("NLST " + args[0] + "\r\n");
                 response_str = control.Receive();
                 if (verbose) cout << response_str;
                 response_code = stoi(response_str);
@@ -947,15 +950,17 @@ int FTPClient::mget(const vector<string> &args) {
                     } else {
                         //TODO LOI GUI LENH mget
                     }
-                    vector<string> nlist;
+                    vector<string>nlist;
                     string nametemp;
-                    for (int i = 0; i < datalist.length(); i++) {
-                        if (datalist[i] != 0x0d) {
+                    for(int i=0;i<datalist.length();i++)
+                    {
+                        if(datalist[i]!=0x0d)
+                        {
                             nametemp.push_back(datalist[i]);
-                        } else {
+                        } else{
                             i++;
                             nlist.push_back(nametemp);
-                            nametemp = "";
+                            nametemp="";
                             get(nlist);
                             nlist.clear();
                         }
@@ -1015,15 +1020,17 @@ int FTPClient::mget(const vector<string> &args) {
                     } else {
                         //TODO LOI GUI LENH mget
                     }
-                    vector<string> nlist;
+                    vector<string>nlist;
                     string nametemp;
-                    for (int i = 0; i < datalist.length(); i++) {
-                        if (datalist[i] != 0x0d) {
+                    for(int i=0;i<datalist.length();i++)
+                    {
+                        if(datalist[i]!=0x0d)
+                        {
                             nametemp.push_back(datalist[i]);
-                        } else {
+                        } else{
                             i++;
                             nlist.push_back(nametemp);
-                            nametemp = "";
+                            nametemp="";
                             get(nlist);
                             nlist.clear();
                         }
@@ -1036,9 +1043,14 @@ int FTPClient::mget(const vector<string> &args) {
                 data.close_connection();
             }
         }
-    } else {
-        for (int i = 0; i < args.size(); i++) {
-            get((const vector<string> &) args[i]);
+    } else{
+        for(int i=0;i<args.size();i++)
+        {
+            vector<string> temp;
+            temp.push_back(args[i]);
+            temp.push_back(args[i]);
+            get(temp);
+            temp.clear();
         }
     }
     return 0;

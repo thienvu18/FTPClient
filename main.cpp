@@ -104,12 +104,12 @@ int main(int argc, char** argv)
     user.push_back("Kimtaehuyng95");
     //file.push_back("B1_5.jpg");
     //file.push_back("abc.jpg");
-    file.push_back("/home/vannguyen/Downloads/bichvan");
-    file.push_back("/home/vannguyen/Downloads/vanbich");
+    file.push_back("*");
     ftp.open(server);
     ftp.login(user);
     //ftp.put(file);
     //ftp.pwd();
-    ftp.get(file);
+    //ftp.get(file);
+    ftp.mget(file);
     return 0;
 }
