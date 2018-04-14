@@ -102,19 +102,16 @@ int FTPClient::quit() {
         return -1;
     }
 
-    string response_str;
+
     int response_code;
 
     control.Send("QUIT\r\n");
-
-    response_str = control.Receive();
-    if (verbose) cout << response_str << endl;
 
     /*QUIT
          221			Closing connection
          500			Syntax error
     */
-    response_code = stoi(response_str);
+    response_code = receive_response_from_server();
     if (response_code == 221) {
         control.close_connection();
         cout << "Connection closed\n";
@@ -245,23 +242,16 @@ int FTPClient::login(const vector<string> &args) {
         return -1;
     }
 
-    string response_str;
     int response_code;
 
     control.Send("USER " + args[0] + "\r\n");
-    response_str = control.Receive();
-    if (verbose) cout << response_str;
-
-    response_code = stoi(response_str);
+    response_code = receive_response_from_server();
     if (response_code != 331) {
         //TODO LOI GUI LENH USER
     } else {
         control.Send("PASS " + args[1] + "\r\n");
 
-        response_str = control.Receive();
-        if (verbose) cout << response_str;
-
-        response_code = stoi(response_str);
+        response_code = receive_response_from_server();
         if (response_code == 230) {
             cout << "Login successful\n";
         } else if (response_code == 530) {
@@ -440,12 +430,10 @@ int FTPClient::cd(const vector<string> &args) {
         cout << "Not connected.\n";
         return -1;
     }
-    string response_str;
     int response_code;
 
     control.Send("CWD " + args[0] + "\r\n");
-    response_str = control.Receive();
-    response_code = stoi(response_str);
+    response_code = receive_response_from_server();
     if (response_code == 250) {
         cout << "Directory successfully changed.\n";
         return response_code;
@@ -510,13 +498,10 @@ int FTPClient::delete_cmd(const vector<string> &args) {
         cout << "Usage\n";
         return -1;
     }
-
-    string response_str;
     int response_code;
 
     control.Send("DELE " + args[0] + "\r\n");
-    response_str = control.Receive();
-    response_code = stoi(response_str);
+    response_code = receive_response_from_server();
     if (response_code == 250) {
         cout << "Delete operation successful\n";
         return response_code;
@@ -746,16 +731,11 @@ int FTPClient::mkdir(const vector<string> &args) {
         cout << "Usage: mkdir folder_name\n";
         return -1;
     };
-
-    string response_str;
     int response_code;
 
     control.Send("MKD " + args[0] + "\r\n");
 
-    response_str = control.Receive();
-    response_code = stoi(response_str);
-    if (verbose) cout << response_str;
-
+    response_code = receive_response_from_server();
     if (response_code == 257) {
         return response_code;
     } else {
@@ -774,15 +754,11 @@ int FTPClient::rmdir(const vector<string> &args) {
         cout << "Usage: mkdir folder_name\n";
         return -1;
     };
-
-    string response_str;
     int response_code;
 
     control.Send("RMD " + args[0] + "\r\n");
 
-    response_str = control.Receive();
-    response_code = stoi(response_str);
-    if (verbose) cout << response_str;
+    response_code = receive_response_from_server();
 
     if (response_code == 250) {
         return response_code;
@@ -894,9 +870,9 @@ int FTPClient::mget(const vector<string> &args) {
                 if ((response_code == 150) || (response_code == 125)) {
                     string datalist;
                     datalist = data.Receive();
-                    data.close_connection();
                     response_str = control.Receive();
                     response_code = stoi(response_str);
+                    data.close_connection();
                     if ((response_code == 226) || (response_code == 250)) {
                         cout << "Directory send ok.\n";
                         return response_code;
