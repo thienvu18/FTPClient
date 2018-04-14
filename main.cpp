@@ -100,16 +100,16 @@ int main(int argc, char** argv)
 
     vector<string> server, user,file;
     server.push_back("127.0.0.1");
-    user.push_back("vannguyen");
-    user.push_back("Kimtaehuyng95");
+    user.push_back("thienvu");
+    user.push_back("18022804");
     //file.push_back("B1_5.jpg");
     //file.push_back("abc.jpg");
-    file.push_back("*");
+    file.push_back("thaivu.abc");
     ftp.open(server);
     ftp.login(user);
-    //ftp.put(file);
+    ftp.put(file);
     //ftp.pwd();
     //ftp.get(file);
-    ftp.mget(file);
+    //ftp.mget(file);
     return 0;
 }

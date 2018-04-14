@@ -40,6 +40,8 @@ private:
 
     void *wait_for_connecting(TCPServer &data, void *threadid);
 
+    bool establish_data_connection(void *data_connection);
+
 public:
 	FTPClient();
 
