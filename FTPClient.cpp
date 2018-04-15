@@ -114,8 +114,7 @@ int FTPClient::quit() {
     response_code = receive_response_from_server();
     if (response_code == 221) {
         control.close_connection();
-        cout << "Connection closed\n";
-    } else cout << "Syntax error\n";
+    }
 
     return response_code;
 }
@@ -202,7 +201,16 @@ string FTPClient::getAbsolutePath(const string &relativePath) {
         } else break;
     }
 
-    if (relativePath[0] == '/') return "/" + fileName;
+    if (relativePath[0] == '/') {
+        for (int i = temp.length() - 1; i >= 1; i--) {
+            if (temp[i] != '.' && !(temp[i] == '/' && temp[i - 1] == '.') && !(temp[i] == '/' && fileName[0] == '/')) {
+                fileName.insert(fileName.begin(), temp[i]);
+                temp.pop_back();
+            } else temp.pop_back();;
+        }
+
+        return "/" + fileName;
+    }
     else if (relativePath[0] == '~') {
         absolutePath = "/home/";
         string name(getlogin());
@@ -375,7 +383,7 @@ int FTPClient::cd(const vector<string> &args) {
 }
 
 int FTPClient::help(const vector<string> &args) {
-    if (args[0].length() == 0) {
+    if (args.size() == 0) {
         cout
                 << "Commands may be abbreviated.  Commands are:\nlogin\t\tls\t\t\tdir\nput \t\tget\t\t\tmput\nmget\t\tcd\t\t\tlcd\ndelete\t\tmdelete\t\tmkdir\nrmdir\t\tpwd\t\t\tpassive\nquit\t\texit\n";
     } else if (args[0] == "login") {
@@ -455,9 +463,9 @@ int FTPClient::mput(const vector<string> &args) {
         cout << "Usage: mput local_file_1 [local_file_2] [...]\n";
         return -1;
     };
-    for (int i = 0; i < args.size(); i++) {
+    for (const auto &arg : args) {
         vector<string> temp;
-        temp.push_back(args[i]);
+        temp.push_back(arg);
         put(temp);
         temp.clear();
     }
@@ -465,7 +473,6 @@ int FTPClient::mput(const vector<string> &args) {
 
 int FTPClient::get(const vector<string> &args)
 {
-
     if (!control.isConnected()) {
         cout << "Not connected.\n";
         return -1;

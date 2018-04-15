@@ -49,20 +49,16 @@ public:
 
 	int open(const vector<string> &args);
 
-	int user(const vector<string> &args);
-
-	int password(const vector<string> &args);
-
 	int login(const vector<string> &args);
 
 	int list(const vector<string> &args);
 
 	int put(const vector<string> &args);
 
-	int mput(const vector<string> &args);//
+    int mput(const vector<string> &args);
 	int get(const vector<string> &args);
 
-	int mget(const vector<string> &args);//
+    int mget(const vector<string> &args);
 	int cd(const vector<string> &args);
 
 	int lcd(const vector<string> &args);

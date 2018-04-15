@@ -19,7 +19,7 @@ TCPServer::TCPServer() {
     bzero((char *) &server_address, sizeof(server_address));
     server_address.sin_family = AF_INET;
     server_address.sin_addr.s_addr = INADDR_ANY;
-    server_address.sin_port = htons(6685);
+    server_address.sin_port = htons(0);
 
     //Bind the parent socket to all interface
     if (bind(parent_socket, (struct sockaddr *) &server_address, sizeof(server_address)) < 0) {
@@ -48,14 +48,15 @@ int TCPServer::wait_for_connection() {
 }
 
 std::string TCPServer::get_server_port() {
-//    socklen_t len = sizeof(server_address);
-//
-//    if (getsockname(child_socket, (struct sockaddr *) &server_address, &len) == -1) {
-//        return std::string();
-//    }
+    struct sockaddr_in address;
+    socklen_t len = sizeof(address);
 
-    return std::to_string(ntohs(server_address.sin_port) / 256) + "," +
-           std::to_string(ntohs(server_address.sin_port) % 256);
+    if (getsockname(parent_socket, (struct sockaddr *) &address, &len) < 0) {
+        return std::string();
+    }
+
+    return std::to_string(ntohs(address.sin_port) / 256) + "," +
+           std::to_string(ntohs(address.sin_port) % 256);
 }
 
 TCPServer::~TCPServer() {
