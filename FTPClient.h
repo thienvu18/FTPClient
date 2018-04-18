@@ -24,9 +24,7 @@ using namespace std;
 class FTPClient
 {
 private:
-	string current_path;
-	bool isRunning;
-	bool verbose = true;
+    bool verbose_mode = true;
     bool passive_mode = false;
     TCPClient control;
 
@@ -46,6 +44,10 @@ private:
 
 public:
 	FTPClient();
+
+    void setPassive();
+
+    void setVerbose();
 
 	int open(const vector<string> &args);
 
@@ -72,7 +74,11 @@ public:
 	int rmdir(const vector<string> &args);
 
     int pwd();
-	int passive();
+
+    void passive();
+
+    void verbose();
+
 
 	int help(const vector<string> &args);
 	int quit();

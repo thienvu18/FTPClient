@@ -1,15 +1,7 @@
 #include <set>
 #include "FTPClient.h"
 
-FTPClient::FTPClient()
-{
-    current_path = getCurrentPath();
-    isRunning = true;
-}
-
-int FTPClient::setCurrentPath(const string &path)
-{
-    return chdir(path.c_str());
+FTPClient::FTPClient() {
 }
 
 string FTPClient::getCurrentPath() {
@@ -59,7 +51,7 @@ int FTPClient::open(const vector<string> &args) {
     }
 
     response_str = control.Receive();
-    if (verbose) cout << response_str;
+    if (verbose_mode) cout << response_str;
 
     if (response_str[0] < '1' || response_str[0] > '5') {
         cout << "Connection established, but this is not a ftp connection\nClose connection\n";
@@ -102,16 +94,15 @@ int FTPClient::quit() {
         return -1;
     }
 
-
     int response_code;
 
     control.Send("QUIT\r\n");
+    response_code = receive_response_from_server();
 
     /*QUIT
          221			Closing connection
          500			Syntax error
     */
-    response_code = receive_response_from_server();
     if (response_code == 221) {
         control.close_connection();
     }
@@ -254,18 +245,16 @@ int FTPClient::login(const vector<string> &args) {
 
     control.Send("USER " + args[0] + "\r\n");
     response_code = receive_response_from_server();
-    if (response_code != 331) {
-        //TODO LOI GUI LENH USER
-    } else {
-        control.Send("PASS " + args[1] + "\r\n");
 
+    if (response_code == 331) {
+        control.Send("PASS " + args[1] + "\r\n");
         response_code = receive_response_from_server();
+
         if (response_code == 230) {
             cout << "Login successful\n";
         } else if (response_code == 530) {
             cout << "Login incorrect\n";
             cout << "Login failed\n";
-        } else{
             //TODO LOI GUI LENH PASS
         }
     }
@@ -283,7 +272,7 @@ int FTPClient::pwd() {
 
     control.Send("PWD\r\n");
     response_str = control.Receive();
-    if (verbose) cout << response_str;
+    if (verbose_mode) cout << response_str;
 
     response_code = stoi(response_str);
     if (response_code == 257) {
@@ -422,9 +411,16 @@ int FTPClient::help(const vector<string> &args) {
     return 0;
 }
 
-int FTPClient::passive() {
-    passive_mode=not(passive_mode);
-    return 0;
+void FTPClient::passive() {
+    passive_mode = !passive_mode;
+    if (passive_mode) cout << "Passive mode on\n";
+    else cout << "Passive mode off\n";
+}
+
+void FTPClient::verbose() {
+    verbose_mode = !verbose_mode;
+    if (verbose_mode) cout << "Verbose on\n";
+    else cout << "Verbose off\n";
 }
 
 int FTPClient::delete_cmd(const vector<string> &args) {
@@ -564,7 +560,7 @@ int FTPClient::get(const vector<string> &args)
         // TODO
     }
 
-    return receive_response_from_server();
+    return code;//receive_response_from_server();
 }
 
 
@@ -661,10 +657,14 @@ int FTPClient::mget(const vector<string> &args) {
                 TCPClient *data = (TCPClient *) data_connection;
                 datalist = data->Receive();
                 data->close_connection();
+
+                delete[]data;
             } else {
                 TCPServer *data = (TCPServer *) data_connection;
                 datalist = data->Receive();
                 data->close_connection();
+
+                delete[]data;
             }
             code = receive_response_from_server();
             if ((code == 226) || (code == 250)) {
@@ -676,7 +676,7 @@ int FTPClient::mget(const vector<string> &args) {
             } else {
                 //TODO LOI GUI LENH LIST
             }
-            delete[] data_connection;
+
             vector<string> nlist;
             string nametemp;
             for (int i = 0; i < datalist.length(); i++) {
@@ -718,7 +718,7 @@ bool FTPClient::establish_data_connection(void *data_connection) {
         //Enter passive mode
         control.Send("PASV\r\n");
         response_str = control.Receive();
-        if (verbose) cout << response_str;
+        if (verbose_mode) cout << response_str;
         response_code = stoi(response_str);
         if (response_code != 227) {
             //TODO LOI GUI LENH PASV
@@ -748,7 +748,7 @@ bool FTPClient::establish_data_connection(void *data_connection) {
         //Send port information to server
         control.Send("PORT " + control.get_client_address() + "," + data->get_server_port() + "\r\n");
         response_str = control.Receive();
-        if (verbose) cout << response_str;
+        if (verbose_mode) cout << response_str;
 
         response_code = stoi(response_str);
 
@@ -760,8 +760,16 @@ int FTPClient::receive_response_from_server() {
     string response_str = control.Receive();
     int response_code = stoi(response_str);
 
-    if (verbose) cout << response_str;
+    if (verbose_mode) cout << response_str;
 
     return response_code;
+}
+
+void FTPClient::setPassive() {
+    passive_mode = true;
+}
+
+void FTPClient::setVerbose() {
+    verbose_mode = true;
 }
 
