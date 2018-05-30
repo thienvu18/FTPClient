@@ -78,6 +78,8 @@ int FTPClient::open(const vector<string> &args) {
 }
 
 int FTPClient::quit() {
+    if (!control.isConnected()) return -1;
+
     int response_code;
 
     control.Send("QUIT\r\n");
