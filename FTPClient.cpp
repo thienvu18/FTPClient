@@ -30,15 +30,8 @@ int FTPClient::open(const vector<string> &args) {
     int response_code;
 
     regex number("^[0-9]{1,5}$");    //Pattern for 1 to 5 digit
-    regex ip(
-            R"(^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$)");
-    regex url(R"(^(((ftp|http|https):\/\/)?((\w+)(\.\w+)+)+)$)");
 
-    //Check number of args.
-    if (args.empty() && args.size() > 2) goto usage;
-
-    if (regex_match(args[0], ip) || regex_match(args[0], url)) serverName = args[0];
-    else goto invalid_args;
+    serverName = args[0];
 
     if (args.size() == 2) {
         if (regex_match(args[1], number)) port = stoi(args[1]);
@@ -79,21 +72,12 @@ int FTPClient::open(const vector<string> &args) {
     cout << "Bad port number\n";
     goto usage;
 
-    invalid_args:
-    cout << "Invalid argument\n";
-    goto usage;
-
     usage:
     cout << "Usage: open host-name [port]\n";
     return -1;
 }
 
 int FTPClient::quit() {
-    if (!control.isConnected()) {
-        cout << "Not connected";
-        return -1;
-    }
-
     int response_code;
 
     control.Send("QUIT\r\n");

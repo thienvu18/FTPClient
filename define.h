@@ -46,7 +46,8 @@ struct Request {
 };
 
 vector<Command> COMMAND_LIST = {
-        Command("open", 1, {"IP"}),
+        Command("open", 1, {"Hostname: ", "Port: "}),
+        Command("user", 1, {"User name: "}),
         Command("ls"),
         Command("dir"),
         Command("put", 1, {"(local-file)", "(remote-file)"}),
