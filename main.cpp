@@ -38,7 +38,7 @@ vector<Command> COMMAND_LIST = {
 
 enum Commands {
 	OPEN = 0,
-    LOGIN,
+    USER,
 	LIST,   //ls, dir
 	PUT,
 	MPUT,
