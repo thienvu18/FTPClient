@@ -48,11 +48,13 @@ bool TCPClient::Send(const std::string &msg) {
 }
 
 int TCPClient::Receive(char *buffer, int buffer_length) {
+    memset(buffer, 0, BUFSIZE);
     return read(sock, buffer, buffer_length);
 }
 
 std::string TCPClient::Receive(int nbytes) {
-    char buffer[nbytes];
+    char buffer[nbytes + 1];
+    memset(buffer, 0, nbytes + 1);
 
     if (read(sock, buffer, nbytes) < 0)
         return std::string();
