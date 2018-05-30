@@ -1,8 +1,7 @@
 #include <set>
 #include "FTPClient.h"
 
-FTPClient::FTPClient() {
-}
+FTPClient::FTPClient() = default;
 
 string FTPClient::getCurrentPath() {
     string realPath;
@@ -106,6 +105,9 @@ int FTPClient::put(const vector<string> &args) {
         return -1;
     }
 
+    if (args.empty())
+        return -1;
+
     int response_code;
     string relativeFileName;
     string localFileName;
@@ -145,11 +147,11 @@ int FTPClient::put(const vector<string> &args) {
             int nbytes = fread(buff, 1, BUFSIZE, input);
 
             if (passive_mode) {
-                TCPClient *data = (TCPClient *) data_connection;
+                auto *data = (TCPClient *) data_connection;
                 data->Send(buff, nbytes);
                 data->close_connection();
             } else {
-                TCPServer *data = (TCPServer *) data_connection;
+                auto *data = (TCPServer *) data_connection;
                 data->Send(buff, nbytes);
                 data->close_connection();
             }
@@ -263,11 +265,11 @@ int FTPClient::list(const vector<string> &args) {
     if ((response_code == 150) || (response_code == 125)) {
         string datalist;
         if (passive_mode) {
-            TCPClient *data = (TCPClient *) data_connection;
+            auto *data = (TCPClient *) data_connection;
             datalist = data->Receive();
             data->close_connection();
         } else {
-            TCPServer *data = (TCPServer *) data_connection;
+            auto *data = (TCPServer *) data_connection;
             datalist = data->Receive();
             data->close_connection();
         }
@@ -295,6 +297,9 @@ int FTPClient::cd(const vector<string> &args) {
         cout << "Not connected.\n";
         return -1;
     }
+
+    if (args.empty())
+        return -1;
 
     int response_code;
 
@@ -385,6 +390,8 @@ int FTPClient::delete_cmd(const vector<string> &args) {
         return -1;
     }
 
+    if (args.empty()) return -1;
+
     int response_code;
 
     control.Send("DELE " + args[0] + "\r\n");
@@ -420,17 +427,17 @@ int FTPClient::get(const vector<string> &args)
         return -1;
     }
 
+    if (args.empty())
+        return -1;
+
     FILE *output;
     if (args.size() == 1) {
         output = fopen(args[0].c_str(), "wb");
-    }
-    else
+        cout << "Local: " << args[0] << "\n" << "Remote: " << args[0] << endl;
+    } else if (args.size() == 2) {
         output = fopen(args[1].c_str(), "wb");
-
-    if (args.size() == 1)
-        cout << "local: " << args[0] << " remote: " << args[0] << endl;
-    else
-        cout << "local: " << args[1] << " remote: " << args[0] << endl;
+        cout << "Local: " << args[1] << "\n" << "Remote: " << args[0] << endl;
+    }
 
     void *data_connection;
     passive_mode ? data_connection = new TCPClient : data_connection = new TCPServer;
@@ -451,7 +458,7 @@ int FTPClient::get(const vector<string> &args)
         t1 = clock();
 
         if (passive_mode) {
-            TCPClient *data = (TCPClient *) data_connection;
+            auto *data = (TCPClient *) data_connection;
 
             while ((n = data->Receive(buff, BUFSIZE)) > 0) {
                 nSum += n;
@@ -461,7 +468,7 @@ int FTPClient::get(const vector<string> &args)
             t2 = clock();
             data->close_connection();
         } else {
-            TCPServer *data = (TCPServer *) data_connection;
+            auto *data = (TCPServer *) data_connection;
 
             while ((n = data->Receive(buff, BUFSIZE)) > 0) {
                 nSum += n;
@@ -514,6 +521,9 @@ int FTPClient::mkdir(const vector<string> &args) {
         return -1;
     }
 
+    if (args.empty())
+        return -1;
+
     control.Send("MKD " + args[0] + "\r\n");
 
     return receive_response_from_server();
@@ -525,6 +535,9 @@ int FTPClient::rmdir(const vector<string> &args) {
         return -1;
     }
 
+    if (args.empty())
+        return -1;
+
     control.Send("RMD " + args[0] + "\r\n");
 
     return receive_response_from_server();
@@ -535,6 +548,9 @@ int FTPClient::mget(const vector<string> &args) {
         cout << "Not connected.\n";
         return -1;
     }
+
+    if (args.empty())
+        return -1;
 
     if (args[0] == "*" && args.size() == 1) {
         void *data_connection;
@@ -551,19 +567,19 @@ int FTPClient::mget(const vector<string> &args) {
         if ((code == 150) || (code == 125)) {
             string datalist;
             if (passive_mode) {
-                TCPClient *data = (TCPClient *) data_connection;
+                auto *data = (TCPClient *) data_connection;
                 datalist = data->Receive();
                 data->close_connection();
 
                 delete[]data;
             } else {
-                TCPServer *data = (TCPServer *) data_connection;
+                auto *data = (TCPServer *) data_connection;
                 datalist = data->Receive();
                 data->close_connection();
 
                 delete[]data;
             }
-            code = receive_response_from_server();
+            receive_response_from_server();
 
             vector<string> nlist;
             string nametemp;
@@ -598,7 +614,7 @@ bool FTPClient::establish_data_connection(void *data_connection) {
     int response_code;
 
     if (passive_mode) {
-        TCPClient *data = (TCPClient *) data_connection;
+        auto *data = (TCPClient *) data_connection;
 
         //Enter passive mode
         control.Send("PASV\r\n");
@@ -627,7 +643,7 @@ bool FTPClient::establish_data_connection(void *data_connection) {
             return data->setup(address, port);
         }
     } else {
-        TCPServer *data = (TCPServer *) data_connection;
+        auto *data = (TCPServer *) data_connection;
         data->wait_for_connection();
 
         //Send port information to server
@@ -664,6 +680,9 @@ int FTPClient::user(const vector<string> &args) {
         return -1;
     }
 
+    if (args.empty())
+        return -1;
+
     control.Send("USER " + args[0] + "\r\n");
     return receive_response_from_server();
 }
@@ -673,6 +692,9 @@ int FTPClient::pass(const vector<string> &args) {
         cout << "Not connected.\n";
         return -1;
     }
+
+    if (args.empty())
+        return -1;
 
     control.Send("PASS " + args[0] + "\r\n");
     return receive_response_from_server();
