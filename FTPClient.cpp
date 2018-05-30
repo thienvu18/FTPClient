@@ -245,7 +245,6 @@ int FTPClient::pwd() {
 
     control.Send("PWD\r\n");
     response_str = control.Receive();
-    if (verbose_mode) cout << response_str;
 
     response_code = stoi(response_str);
     if (response_code == 257) {
@@ -263,11 +262,6 @@ int FTPClient::list(const vector<string> &args) {
         return -1;
     }
 
-    //Check number of args.
-    if (args.size() > 2) {
-        cout << "Usage\n";
-        return -1;
-    }
     void *data_connection;
     passive_mode ? data_connection = new TCPClient : data_connection = new TCPServer;
 
@@ -282,35 +276,23 @@ int FTPClient::list(const vector<string> &args) {
         control.Send("LIST " + args[0] + "\r\n");
     }
 
-    if ((receive_response_from_server() == 150)||(receive_response_from_server() == 125)) {
+    int response_code = receive_response_from_server();
+
+    if ((response_code == 150) || (response_code == 125)) {
+        string datalist;
         if (passive_mode) {
             TCPClient *data = (TCPClient *) data_connection;
-            string datalist;
             datalist = data->Receive();
-            cout << datalist;
             data->close_connection();
         } else {
             TCPServer *data = (TCPServer *) data_connection;
-            string datalist;
             datalist = data->Receive();
-            cout << datalist;
             data->close_connection();
         }
-        int code = receive_response_from_server();
-        if ((code == 226) || (code == 250)) {
-            cout << "Directory send ok.\n";
-            return code;
-        } else if ((code== 425) || (code== 426) || (code== 451)) {
-            cout << "Not connected\n";
-        } else if (code == 450) {
-            cout << "Requested file action not taken\n";
-        } else {
-            //TODO LOI GUI LENH LIST
-        }
-    } else{
-        //TODO LOI GUI LENH LIST
+        cout << datalist << endl;
     }
-    return 0;
+
+    return receive_response_from_server();
 }
 
 int FTPClient::lcd(const vector<string> &args) {
@@ -331,17 +313,19 @@ int FTPClient::cd(const vector<string> &args) {
         cout << "Not connected.\n";
         return -1;
     }
+
     int response_code;
 
     control.Send("CWD " + args[0] + "\r\n");
     response_code = receive_response_from_server();
+
     if (response_code == 250) {
         cout << "Directory successfully changed.\n";
         return response_code;
     } else {
         cout << "Failed to change directory.\n";
     }
-    return 0;
+    return response_code;
 }
 
 int FTPClient::help(const vector<string> &args) {
@@ -406,24 +390,19 @@ int FTPClient::delete_cmd(const vector<string> &args) {
         cout << "Not connected.\n";
         return -1;
     }
-    //Check number of args.
-    if (args.empty() && args.size() > 2) {
-        cout << "Usage\n";
-        return -1;
-    }
+
     int response_code;
 
     control.Send("DELE " + args[0] + "\r\n");
     response_code = receive_response_from_server();
+
     if (response_code == 250) {
         cout << "Delete operation successful\n";
-        return response_code;
     } else if ((response_code == 450) || (response_code == 550)) {
         cout << "Delete operation failed\n";
-    } else {
-        //todo loi go lenh delete
     }
-    return 0;
+
+    return response_code;
 }
 
 int FTPClient::mput(const vector<string> &args) {
@@ -432,11 +411,6 @@ int FTPClient::mput(const vector<string> &args) {
         return -1;
     }
 
-    //Check number of args.
-    if (args.empty()) {
-        cout << "Usage: mput local_file_1 [local_file_2] [...]\n";
-        return -1;
-    };
     for (const auto &arg : args) {
         vector<string> temp;
         temp.push_back(arg);
@@ -452,16 +426,17 @@ int FTPClient::get(const vector<string> &args)
         return -1;
     }
 
-    if (args.empty() && args.size() > 2) {
-        return -1;
-    }
-
     FILE *output;
     if (args.size() == 1) {
         output = fopen(args[0].c_str(), "wb");
     }
     else
         output = fopen(args[1].c_str(), "wb");
+
+    if (args.size() == 1)
+        cout << "local: " << args[0] << " remote: " << args[0] << endl;
+    else
+        cout << "local: " << args[1] << " remote: " << args[0] << endl;
 
     void *data_connection;
     passive_mode ? data_connection = new TCPClient : data_connection = new TCPServer;
@@ -472,22 +447,14 @@ int FTPClient::get(const vector<string> &args)
     };
 
     control.Send("RETR " + args[0] + "\r\n");
-
-    if (args.size() == 1)
-        cout << "local: " << args[0] << " remote: " << args[0] << endl;
-    else
-        cout << "local: " << args[1] << " remote: " << args[0] << endl;
-
     int code = receive_response_from_server();
-    if ((code == 150) || ((code == 125)))
-    {
 
+    if ((code == 150) || ((code == 125))) {
         char buff[BUFSIZE];
         clock_t t1, t2;
         int n, nSum = 0;
 
         t1 = clock();
-
 
         if (passive_mode) {
             TCPClient *data = (TCPClient *) data_connection;
@@ -524,18 +491,7 @@ int FTPClient::get(const vector<string> &args)
                  << "KB/s )\n";
             cout << code << " Transfer complete\n";
 
-        } else if ((code == 425) || (code == 426) || (code == 451)) {
-            cout << "Not connected\n";
-            return -1;
-        } else if ((code == 450) || (code == 550)) {
-            cout << "Requested file action not taken\n";
-            return -1;
-        } else {
-            cout << "false";
-            cout << code;
         }
-    } else{
-        // TODO
     }
 
     return code;//receive_response_from_server();
@@ -549,9 +505,9 @@ int FTPClient::mdelete(const vector<string> &args)
         return -1;
     }
 
-    for (int i = 0; i < args.size(); i++) {
+    for (const auto &arg : args) {
         vector<string> temp;
-        temp.push_back(args[i]);
+        temp.push_back(arg);
         delete_cmd(temp);
         temp.clear();
     }
@@ -565,21 +521,9 @@ int FTPClient::mkdir(const vector<string> &args) {
         return -1;
     }
 
-    //Check number of args.
-    if (args.empty()) {
-        cout << "Usage: mkdir folder_name\n";
-        return -1;
-    };
-    int response_code;
-
     control.Send("MKD " + args[0] + "\r\n");
 
-    response_code = receive_response_from_server();
-    if (response_code == 257) {
-        return response_code;
-    } else {
-        return -1;
-    }
+    return receive_response_from_server();
 }
 
 int FTPClient::rmdir(const vector<string> &args) {
@@ -588,22 +532,9 @@ int FTPClient::rmdir(const vector<string> &args) {
         return -1;
     }
 
-    //Check number of args.
-    if (args.empty()) {
-        cout << "Usage: mkdir folder_name\n";
-        return -1;
-    };
-    int response_code;
-
     control.Send("RMD " + args[0] + "\r\n");
 
-    response_code = receive_response_from_server();
-
-    if (response_code == 250) {
-        return response_code;
-    } else {
-        return -1;
-    }
+    return receive_response_from_server();
 }
 
 int FTPClient::mget(const vector<string> &args) {
@@ -612,11 +543,6 @@ int FTPClient::mget(const vector<string> &args) {
         return -1;
     }
 
-    //Check number of args.
-    if (args.empty()) {
-        cout << "Usage\n";
-        return -1;
-    }
     if (args[0] == "*" && args.size() == 1) {
         void *data_connection;
         passive_mode ? data_connection = new TCPClient : data_connection = new TCPServer;
@@ -645,15 +571,6 @@ int FTPClient::mget(const vector<string> &args) {
                 delete[]data;
             }
             code = receive_response_from_server();
-            if ((code == 226) || (code == 250)) {
-               cout << "Directory send ok.\n";
-            } else if ((code == 425) || (code == 426) || (code == 451)) {
-                cout << "Not connected\n";
-            } else if (code == 450) {
-                cout << "Requested file action not taken\n";
-            } else {
-                //TODO LOI GUI LENH LIST
-            }
 
             vector<string> nlist;
             string nametemp;
@@ -668,20 +585,17 @@ int FTPClient::mget(const vector<string> &args) {
                     nlist.clear();
                 }
             }
-
-        } else {
-            //TODO LOI GUI LENH mget
         }
-    }
-   else{
-        for (int i = 0; i < args.size(); i++) {
+    } else {
+        for (const auto &arg : args) {
             vector<string> temp;
-            temp.push_back(args[i]);
-            temp.push_back(args[i]);
+            temp.push_back(arg);
+            temp.push_back(arg);
             get(temp);
             temp.clear();
         }
     }
+
     return 0;
 }
 

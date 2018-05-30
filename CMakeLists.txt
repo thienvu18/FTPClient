@@ -7,5 +7,5 @@ set(CMAKE_CXX_STANDARD 11)
 set(LIB lib/TCPClient.cpp lib/TCPServer.cpp)
 set(SOURCE FTPClient.cpp main.cpp)
 
-add_executable(FTPClient ${LIB} ${SOURCE})
+add_executable(FTPClient ${LIB} ${SOURCE} define.h)
 target_link_libraries(FTPClient pthread)

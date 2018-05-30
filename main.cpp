@@ -1,73 +1,11 @@
+#include <utility>
 #include "FTPClient.h"
-
-struct Command {
-    string cmd;
-    int argCount;
-    vector<string> argList;
-
-    Command(string cmd, int argCount = 0, vector<string> argList= {} ) {
-        this->cmd;
-        this->argCount = argCount;
-        this->argList = argList;
-    }
-};
-
-vector<Command> COMMAND_LIST = {
-        Command("open", 1, {"IP"}),
-        Command("ls"),
-        Command("dir"),
-        Command("put", 2, {"(local-file)","(remote-file)"}),
-        Command("mput", 2, {"(local-file)","(remote-file)"}),
-        Command("get", 1, {"(remote-file)","(local-file)"}),
-        Command("mget", 1, {"(remote-file)","(local-file)"}),
-        Command("cd", 1, {"(remote-directory)"}),
-        Command("lcd"),
-        Command("delete", 1, {"(remote-file)"}),
-        Command("mdelete", 1, {"(remote-file)"}),
-        Command("mkdir", 1, {"(directory-name)"}),
-        Command("rmdir", 1, {"(directory-name)"}),
-        Command("pwd"),
-        Command("help"),
-        Command("?"),
-        Command("quit"),
-        Command("exit"),
-        Command("!"),
-        Command("passive"),
-        Command("verbose")
-};
-
-enum Commands {
-	OPEN = 0,
-    USER,
-	LIST,   //ls, dir
-	PUT,
-	MPUT,
-	GET,
-	MGET,
-	CD,
-	LCD,
-	DELETE,
-	MDELETE,
-	MKDIR,
-	RMDIR,
-	PWD,
-	PASSIVE,
-	QUIT,   //quit, exit, !
-    HELP,    //help, ?
-    VERBOSE,
-    NOT_CMD
-};
-
-struct Request {
-	Commands command;
-	vector<string> arg;
-};
+#include "define.h"
 
 Request ReadRequest();
+void login(FTPClient &ftp, const string &userName = "");
 
 void help();
-
-void login(FTPClient &ftp, const string &userName = "");
 
 int main(int argc, char **argv) {
     FTPClient ftp;
@@ -177,12 +115,6 @@ int main(int argc, char **argv) {
     }
 }
 
-string GetPassword() {
-    string result;
-    char *pass = getpass("");
-    return result.assign(pass);
-}
-
 Request ReadRequest() {
     string request_str;
     Request request;
@@ -194,12 +126,22 @@ Request ReadRequest() {
         getline(cin, request_str);
     } while (request_str.empty());
 
+    bool flag = false;
+
     for (int i = 0; i <= request_str.length(); i++) {
+        if (request_str[i] == '\"') {
+            flag = !flag;
+            continue;
+        }
+
         if (request_str[i] != ' ' && i < request_str.length()) {
+            temp.push_back(request_str[i]);
+        } else if (request_str[i] == ' ' && flag == true) {
             temp.push_back(request_str[i]);
         } else {
             if (!temp.empty()) {
                 temps.push_back(temp);
+
                 temp.clear();
             }
         }
@@ -207,9 +149,11 @@ Request ReadRequest() {
 
     if (temps[0] == "open") {
         request.command = OPEN;
+    } else if (temps[0] == "user") {
         request.command = USER;
     } else if (temps[0] == "ls" || temps[0] == "dir") {
         request.command = LIST;
+        temps[0] == "ls";
     } else if (temps[0] == "put") {
         request.command = PUT;
     } else if (temps[0] == "mput") {
@@ -238,17 +182,32 @@ Request ReadRequest() {
         request.command = VERBOSE;
     } else if (temps[0] == "quit" || temps[0] == "exit" || temps[0] == "!") {
         request.command = QUIT;
+        temps[0] == "quit";
     } else if (temps[0] == "help" || temps[0] == "?") {
         request.command = HELP;
+        temps[0] == "help";
     } else {
         request.command = NOT_CMD;
     }
 
-    if (temps.size() > 1) {
-        for (int i = 1; i < temps.size(); i++) {
-            request.arg.push_back(temps[i]);
+    for (auto &command : COMMAND_LIST) {
+        if (temps[0] == command.cmd) {
+            for (int j = 1; j < temps.size(); j++) {
+                request.arg.push_back(temps[j]);
+            }
+
+            string additionArg;
+            for (int j = temps.size() - 1; j < command.argList.size(); j++) {
+                cout << command.argList[j] << " ";
+                cin >> additionArg;
+                cin.ignore();
+                request.arg.push_back(additionArg);
+            }
+
+            break;
         }
     }
+
     return request;
 }
 
@@ -263,7 +222,7 @@ void login(FTPClient &ftp, const string &userName) {
     string user, pass;
     vector<string> arg;
 
-    if (userName == "") {
+    if (userName.empty()) {
         cout << "Enter username: ";
         cin >> user;
     } else user = userName;
@@ -273,6 +232,7 @@ void login(FTPClient &ftp, const string &userName) {
     if (ftp.user(arg) == 331) {
         arg.clear();
         pass.assign(getpass("Enter password: "));
+        cin.ignore();
         arg.push_back(pass);
         ftp.pass(arg);
     }
