@@ -196,12 +196,14 @@ Request ReadRequest() {
                 request.arg.push_back(temps[j]);
             }
 
-            string additionArg;
-            for (int j = temps.size() - 1; j < command.argList.size(); j++) {
-                cout << command.argList[j] << " ";
-                cin >> additionArg;
-                cin.ignore();
-                request.arg.push_back(additionArg);
+            if (temps.size() < command.argCount + 1) {
+                string additionArg;
+                for (int j = temps.size() - 1; j < command.argList.size(); j++) {
+                    cout << command.argList[j] << " ";
+                    cin >> additionArg;
+                    cin.ignore();
+                    request.arg.push_back(additionArg);
+                }
             }
 
             break;
