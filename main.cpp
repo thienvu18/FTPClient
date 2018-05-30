@@ -31,6 +31,8 @@ Request ReadRequest();
 
 void help();
 
+void login(FTPClient &ftp, const string &userName = "");
+
 int main(int argc, char **argv) {
     FTPClient ftp;
 
@@ -66,17 +68,7 @@ int main(int argc, char **argv) {
         if (!port.empty()) arg.push_back(port);
 
         if (ftp.open(arg) != -1) {
-            string user, pass;
-            vector<string> arg;
-            cout << "Enter username: ";
-            cin >> user;
-            arg.push_back(user);
-            cout << "Enter password: ";
-            cin >> pass;
-            cin.ignore();
-            arg.push_back(pass);
-
-            ftp.login(arg);
+            login(ftp);
         }
     }
 
@@ -87,22 +79,14 @@ int main(int argc, char **argv) {
             case NOT_CMD:
                 ftp.help(vector<string>());
                 break;
-            case LOGIN:
-                ftp.login(request.arg);
+            case USER:
+                if (request.arg.size() == 1)
+                    login(ftp, request.arg[1]);
+                else login(ftp);
                 break;
             case OPEN:
                 if (ftp.open(request.arg) != -1) {
-                    string user, pass;
-                    vector<string> arg;
-                    cout << "Enter username: ";
-                    cin >> user;
-                    arg.push_back(user);
-                    cout << "Enter password: ";
-                    cin >> pass;
-                    cin.ignore();
-                    arg.push_back(pass);
-
-                    ftp.login(arg);
+                    login(ftp);
                 }
                 break;
             case CD:
@@ -152,6 +136,12 @@ int main(int argc, char **argv) {
                 return 0;
         }
     }
+}
+
+string GetPassword() {
+    string result;
+    char *pass = getpass("");
+    return result.assign(pass);
 }
 
 Request ReadRequest() {
@@ -227,6 +217,25 @@ Request ReadRequest() {
 void help() {
     cout << "Usage: ftp [-vph] -a [Host name] -P [Port]\n"
             "\t   -h: show this help\n"
-            "\t   -p: enable passive mode\n"
+            "\t   -p: passive mode\n"
             "\t   -v: verbose mode\n";
+}
+
+void login(FTPClient &ftp, const string &userName) {
+    string user, pass;
+    vector<string> arg;
+
+    if (userName == "") {
+        cout << "Enter username: ";
+        cin >> user;
+    } else user = userName;
+
+    arg.push_back(user);
+
+    if (ftp.user(arg) == 331) {
+        arg.clear();
+        pass.assign(getpass("Enter password: "));
+        arg.push_back(pass);
+        ftp.pass(arg);
+    }
 }

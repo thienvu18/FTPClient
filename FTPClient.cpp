@@ -235,33 +235,6 @@ inline bool FTPClient::isExist(const string &fileName) {
     return (stat(fileName.c_str(), &buffer) == 0);
 }
 
-int FTPClient::login(const vector<string> &args) {
-    if (!control.isConnected()) {
-        cout << "Not connected.\n";
-        return -1;
-    }
-
-    int response_code;
-
-    control.Send("USER " + args[0] + "\r\n");
-    response_code = receive_response_from_server();
-
-    if (response_code == 331) {
-        control.Send("PASS " + args[1] + "\r\n");
-        response_code = receive_response_from_server();
-
-        if (response_code == 230) {
-            cout << "Login successful\n";
-        } else if (response_code == 530) {
-            cout << "Login incorrect\n";
-            cout << "Login failed\n";
-            //TODO LOI GUI LENH PASS
-        }
-    }
-
-    return response_code;
-}
-
 int FTPClient::pwd() {
     if (!control.isConnected()) {
         cout << "Not connected \n";
@@ -773,3 +746,22 @@ void FTPClient::setVerbose() {
     verbose_mode = true;
 }
 
+int FTPClient::user(const vector<string> &args) {
+    if (!control.isConnected()) {
+        cout << "Not connected.\n";
+        return -1;
+    }
+
+    control.Send("USER " + args[0] + "\r\n");
+    return receive_response_from_server();
+}
+
+int FTPClient::pass(const vector<string> &args) {
+    if (!control.isConnected()) {
+        cout << "Not connected.\n";
+        return -1;
+    }
+
+    control.Send("PASS " + args[0] + "\r\n");
+    return receive_response_from_server();
+}

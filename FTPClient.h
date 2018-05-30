@@ -51,7 +51,9 @@ public:
 
 	int open(const vector<string> &args);
 
-	int login(const vector<string> &args);
+    int user(const vector<string> &args);
+
+    int pass(const vector<string> &args);
 
 	int list(const vector<string> &args);
 
