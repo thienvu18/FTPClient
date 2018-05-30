@@ -1,8 +1,44 @@
 #include "FTPClient.h"
 
+struct Command {
+    string cmd;
+    int argCount;
+    vector<string> argList;
+
+    Command(string cmd, int argCount = 0, vector<string> argList= {} ) {
+        this->cmd;
+        this->argCount = argCount;
+        this->argList = argList;
+    }
+};
+
+vector<Command> COMMAND_LIST = {
+        Command("open", 1, {"IP"}),
+        Command("ls"),
+        Command("dir"),
+        Command("put", 2, {"(local-file)","(remote-file)"}),
+        Command("mput", 2, {"(local-file)","(remote-file)"}),
+        Command("get", 1, {"(remote-file)","(local-file)"}),
+        Command("mget", 1, {"(remote-file)","(local-file)"}),
+        Command("cd", 1, {"(remote-directory)"}),
+        Command("lcd"),
+        Command("delete", 1, {"(remote-file)"}),
+        Command("mdelete", 1, {"(remote-file)"}),
+        Command("mkdir", 1, {"(directory-name)"}),
+        Command("rmdir", 1, {"(directory-name)"}),
+        Command("pwd"),
+        Command("help"),
+        Command("?"),
+        Command("quit"),
+        Command("exit"),
+        Command("!"),
+        Command("passive"),
+        Command("verbose")
+};
+
 enum Commands {
 	OPEN = 0,
-    LOGIN,
+    USER,
 	LIST,   //ls, dir
 	PUT,
 	MPUT,
@@ -87,7 +123,7 @@ int main(int argc, char **argv) {
             case NOT_CMD:
                 ftp.help(vector<string>());
                 break;
-            case LOGIN:
+            case USER:
                 ftp.login(request.arg);
                 break;
             case OPEN:
@@ -150,6 +186,9 @@ int main(int argc, char **argv) {
             case QUIT:
                 ftp.quit();
                 return 0;
+            case HELP:
+                ftp.help(request.arg);
+                break;
         }
     }
 }
@@ -178,8 +217,7 @@ Request ReadRequest() {
 
     if (temps[0] == "open") {
         request.command = OPEN;
-    } else if (temps[0] == "login") {
-        request.command = LOGIN;
+        request.command = USER;
     } else if (temps[0] == "ls" || temps[0] == "dir") {
         request.command = LIST;
     } else if (temps[0] == "put") {
