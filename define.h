@@ -51,7 +51,7 @@ vector<Command> COMMAND_LIST = {
         Command("ls"),
         Command("dir"),
         Command("put", 1, {"(local-file)", "(remote-file)"}),
-        Command("mput", 2, {"(local-file)", "(remote-file)"}),
+        Command("mput", 1, {"(local-file)", "(remote-file)"}),
         Command("get", 1, {"(remote-file)", "(local-file)"}),
         Command("mget", 1, {"(remote-file)", "(local-file)"}),
         Command("cd", 1, {"(remote-directory)"}),
