@@ -278,14 +278,14 @@ int FTPClient::list(const vector<string> &args) {
 }
 
 int FTPClient::lcd(const vector<string> &args) {
-
-    cout << "LCD " << args[0] << endl;
-    if (isExist(args[0]) == 1) {
+    if (args.empty()) {
+        cout << "Local directory now " << getCurrentPath() << endl;
+    } else if (isExist(args[0]) == 1) {
         int n = chdir(args[0].c_str());
         cout << "Local directory now " << args[0] << endl;
         return n;
     } else {
-        cout << "?Invalid command\n";
+        cout << "No such directory\n";
     }
     return 0;
 }
@@ -453,7 +453,7 @@ int FTPClient::get(const vector<string> &args)
         if (passive_mode) {
             TCPClient *data = (TCPClient *) data_connection;
 
-            while (n = data->Receive(buff, BUFSIZE)) {
+            while ((n = data->Receive(buff, BUFSIZE)) > 0) {
                 nSum += n;
                 fwrite(buff, 1, n, output);
             }
@@ -463,7 +463,7 @@ int FTPClient::get(const vector<string> &args)
         } else {
             TCPServer *data = (TCPServer *) data_connection;
 
-            while (n = data->Receive(buff, BUFSIZE)) {
+            while ((n = data->Receive(buff, BUFSIZE)) > 0) {
                 nSum += n;
                 fwrite(buff, 1, n, output);
             }
@@ -477,12 +477,11 @@ int FTPClient::get(const vector<string> &args)
         code = receive_response_from_server();
         if ((code == 226) || (code == 250)) {
 
-            float diff((float) t2 - (float) t1);
-            diff /= CLOCKS_PER_SEC;
+            float diff = (t2 - t1) * 1.0 / CLOCKS_PER_SEC;
             float speed = (float) nSum / diff;
             cout << fixed;
             cout << nSum << " bytes received in " << setprecision(5) << diff << " secs" << " (" << speed / 1024
-                 << "KB/s )\n";
+                 << "KB/s)\n";
             cout << code << " Transfer complete\n";
 
         }
