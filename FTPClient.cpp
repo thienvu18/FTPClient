@@ -131,6 +131,10 @@ int FTPClient::put(const vector<string> &args) {
         return -1;
     }
 
+    fseek(input, 0, SEEK_END);
+    long fileSize = ftell(input);
+    fseek(input, 0, SEEK_SET);
+
     void *data_connection;
     passive_mode ? data_connection = new TCPClient : data_connection = new TCPServer;
 
@@ -143,19 +147,27 @@ int FTPClient::put(const vector<string> &args) {
     response_code = receive_response_from_server();
     if (response_code == 150) {
         char buff[BUFSIZE];
-        while (!feof(input)) {
-            int nbytes = fread(buff, 1, BUFSIZE, input);
-
-            if (passive_mode) {
-                auto *data = (TCPClient *) data_connection;
-                data->Send(buff, nbytes);
-                data->close_connection();
-            } else {
-                auto *data = (TCPServer *) data_connection;
-                data->Send(buff, nbytes);
-                data->close_connection();
+        long bytesSent = 0;
+        if (passive_mode) {
+            auto *data = (TCPClient *) data_connection;
+            while (!feof(input)) {
+                int nBytes = fread(buff, 1, BUFSIZE, input);
+                bytesSent += data->Send(buff, nBytes);
+                if (bytesSent > 0) printProgress(bytesSent * 1.0 / fileSize);
             }
+            data->close_connection();
+        } else {
+            auto *data = (TCPServer *) data_connection;
+            while (!feof(input)) {
+                int nBytes = fread(buff, 1, BUFSIZE, input);
+                bytesSent += data->Send(buff, nBytes);
+                if (bytesSent > 0) printProgress(bytesSent * 1.0 / fileSize);
+            }
+            data->close_connection();
         }
+
+        if (bytesSent > 0) cout << endl;
+
         response_code = receive_response_from_server();
     }
 
@@ -698,4 +710,12 @@ int FTPClient::pass(const vector<string> &args) {
 
     control.Send("PASS " + args[0] + "\r\n");
     return receive_response_from_server();
+}
+
+void FTPClient::printProgress(const double &percentage) {
+    int val = (int) (percentage * 100);
+    int lpad = (int) (percentage * PBWIDTH);
+    int rpad = PBWIDTH - lpad;
+    printf("\r%3d%% [%.*s%*s]", val, lpad, PBSTR, rpad, "");
+    fflush(stdout);
 }

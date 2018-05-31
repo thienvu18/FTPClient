@@ -19,6 +19,9 @@
 #define TIMEOUT 500
 #define DEFAULT_PORT 21
 
+#define PBSTR "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||"
+#define PBWIDTH 60
+
 using namespace std;
 
 class FTPClient
@@ -30,6 +33,9 @@ private:
 
 	int setCurrentPath(const string &path);
 	string getCurrentPath();
+
+
+    void printProgress(const double &percentage);
 
 	//string getParentPath(int nLevels);	//Unused
 	string getAbsolutePath(const string &fileName);

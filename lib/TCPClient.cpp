@@ -20,6 +20,7 @@ bool TCPClient::setup(std::string address, int port) {
         struct in_addr **addr_list;
         if ((he = gethostbyname(address.c_str())) == NULL) {
             printf("Failed to resolve hostname\n");
+            sock = -1;
             return false;
         }
         addr_list = (struct in_addr **) he->h_addr_list;
@@ -34,6 +35,7 @@ bool TCPClient::setup(std::string address, int port) {
     server.sin_port = htons(port);
     if (connect(sock, (struct sockaddr *) &server, sizeof(server)) < 0) {
         printf("connect failed. Error");
+        sock - 1;
         return false;
     }
     return true;

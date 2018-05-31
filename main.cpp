@@ -55,7 +55,7 @@ int main(int argc, char **argv) {
                 break;
             case USER:
                 if (request.arg.size() == 1)
-                    login(ftp, request.arg[1]);
+                    login(ftp, request.arg[0]);
                 else login(ftp);
                 break;
             case OPEN:
@@ -227,6 +227,7 @@ void login(FTPClient &ftp, const string &userName) {
     if (userName.empty()) {
         cout << "Enter username: ";
         cin >> user;
+        cin.ignore();
     } else user = userName;
 
     arg.push_back(user);
@@ -234,7 +235,6 @@ void login(FTPClient &ftp, const string &userName) {
     if (ftp.user(arg) == 331) {
         arg.clear();
         pass.assign(getpass("Enter password: "));
-        cin.ignore();
         arg.push_back(pass);
         ftp.pass(arg);
     }
