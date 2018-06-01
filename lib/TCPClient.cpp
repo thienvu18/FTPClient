@@ -34,8 +34,8 @@ bool TCPClient::setup(std::string address, int port) {
     server.sin_family = AF_INET;
     server.sin_port = htons(port);
     if (connect(sock, (struct sockaddr *) &server, sizeof(server)) < 0) {
-        printf("connect failed. Error");
-        close(sock);
+        printf("Failed to connect to server\n");
+        sock = -1;
         return false;
     }
     return true;
@@ -91,4 +91,5 @@ bool TCPClient::isConnected() {
 
 void TCPClient::close_connection() {
     close(sock);
+    printf("%d", sock);
 }
