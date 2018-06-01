@@ -13,7 +13,7 @@
 
 #include <string>
 
-#define BUFSIZE 1024
+#define BUFSIZE 1048576
 
 class TCPServer
 {

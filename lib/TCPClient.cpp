@@ -35,7 +35,7 @@ bool TCPClient::setup(std::string address, int port) {
     server.sin_port = htons(port);
     if (connect(sock, (struct sockaddr *) &server, sizeof(server)) < 0) {
         printf("connect failed. Error");
-        sock - 1;
+        close(sock);
         return false;
     }
     return true;

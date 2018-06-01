@@ -1,4 +1,5 @@
 #include <set>
+#include <chrono>
 #include "FTPClient.h"
 
 FTPClient::FTPClient() = default;
@@ -148,26 +149,37 @@ int FTPClient::put(const vector<string> &args) {
     if (response_code == 150) {
         char buff[BUFSIZE];
         long bytesSent = 0;
+        double speed;
+
         if (passive_mode) {
             auto *data = (TCPClient *) data_connection;
             while (!feof(input)) {
                 int nBytes = fread(buff, 1, BUFSIZE, input);
+
+                auto start = std::chrono::steady_clock::now();
                 bytesSent += data->Send(buff, nBytes);
-                if (bytesSent > 0) printProgress(bytesSent * 1.0 / fileSize);
+                auto end = std::chrono::steady_clock::now();
+
+                auto diff = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+                speed = nBytes * 1000.0 / 1024 / diff.count();
+                printProgress(bytesSent * 1.0 / fileSize, speed);
             }
             data->close_connection();
         } else {
             auto *data = (TCPServer *) data_connection;
             while (!feof(input)) {
                 int nBytes = fread(buff, 1, BUFSIZE, input);
+
+                auto start = std::chrono::steady_clock::now();
                 bytesSent += data->Send(buff, nBytes);
-                if (bytesSent > 0) printProgress(bytesSent * 1.0 / fileSize);
+                auto end = std::chrono::steady_clock::now();
+
+                auto diff = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+                speed = nBytes * 1000.0 / 1024 / diff.count();
+                printProgress(bytesSent * 1.0 / fileSize, speed);
             }
             data->close_connection();
         }
-
-        if (bytesSent > 0) cout << endl;
-
         response_code = receive_response_from_server();
     }
 
@@ -432,8 +444,7 @@ int FTPClient::mput(const vector<string> &args) {
     }
 }
 
-int FTPClient::get(const vector<string> &args)
-{
+int FTPClient::get(const vector<string> &args) {
     if (!control.isConnected()) {
         cout << "Not connected.\n";
         return -1;
@@ -459,59 +470,71 @@ int FTPClient::get(const vector<string> &args)
         return -1;
     };
 
+    control.Send("SIZE " + args[0] + "\r\n");
+    string rep = control.Receive();
+    std::stringstream ss(rep);
+    string stt, size;
+    ss >> stt;
+    ss >> size;
+    long fileSize = 0;
+
+    if (stoi(stt) == 213) {
+        fileSize = stol(size);
+    }
+
     control.Send("RETR " + args[0] + "\r\n");
     int code = receive_response_from_server();
 
     if ((code == 150) || ((code == 125))) {
         char buff[BUFSIZE];
-        clock_t t1, t2;
         int n, nSum = 0;
+        double speed;
 
-        t1 = clock();
+        auto start = std::chrono::steady_clock::now();
 
         if (passive_mode) {
             auto *data = (TCPClient *) data_connection;
 
             while ((n = data->Receive(buff, BUFSIZE)) > 0) {
+                auto end = std::chrono::steady_clock::now();
+
                 nSum += n;
                 fwrite(buff, 1, n, output);
-            }
 
-            t2 = clock();
+                auto diff = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+                speed = n * 1000.0 / 1024 / diff.count();
+                printProgress(nSum * 1.0 / fileSize, speed);
+
+                start = std::chrono::steady_clock::now();
+            }
             data->close_connection();
         } else {
             auto *data = (TCPServer *) data_connection;
 
             while ((n = data->Receive(buff, BUFSIZE)) > 0) {
+                auto end = std::chrono::steady_clock::now();
+
                 nSum += n;
                 fwrite(buff, 1, n, output);
+
+                auto diff = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+                speed = n * 1000.0 / 1024 / diff.count();
+                printProgress(nSum * 1.0 / fileSize, speed);
+
+                start = std::chrono::steady_clock::now();
             }
 
-            t2 = clock();
             data->close_connection();
         }
 
         fclose(output);
-
         code = receive_response_from_server();
-        if ((code == 226) || (code == 250)) {
-
-            float diff = (t2 - t1) * 1.0 / CLOCKS_PER_SEC;
-            float speed = (float) nSum / diff;
-            cout << fixed;
-            cout << nSum << " bytes received in " << setprecision(5) << diff << " secs" << " (" << speed / 1024
-                 << "KB/s)\n";
-            cout << code << " Transfer complete\n";
-
-        }
     }
 
     return code;//receive_response_from_server();
 }
 
-
-int FTPClient::mdelete(const vector<string> &args)
-{
+int FTPClient::mdelete(const vector<string> &args) {
     if (!control.isConnected()) {
         cout << "Not connected\n";
         return -1;
@@ -712,10 +735,13 @@ int FTPClient::pass(const vector<string> &args) {
     return receive_response_from_server();
 }
 
-void FTPClient::printProgress(const double &percentage) {
+void FTPClient::printProgress(const double &percentage, double speed) {
     int val = (int) (percentage * 100);
     int lpad = (int) (percentage * PBWIDTH);
     int rpad = PBWIDTH - lpad;
-    printf("\r%3d%% [%.*s%*s]", val, lpad, PBSTR, rpad, "");
+    if (speed >= 0)
+        printf("\r%3d%% [%.*s%*s]\t\t%10.2f KB/s", val, lpad, PBSTR, rpad, "", speed);
+    else printf("\r%3d%% [%.*s%*s]", val, lpad, PBSTR, rpad, "");
+    if (val >= 100) printf("\n");
     fflush(stdout);
 }

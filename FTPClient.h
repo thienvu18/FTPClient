@@ -34,15 +34,12 @@ private:
 	int setCurrentPath(const string &path);
 	string getCurrentPath();
 
-
-    void printProgress(const double &percentage);
+    void printProgress(const double &percentage, double speed = -1);
 
 	//string getParentPath(int nLevels);	//Unused
 	string getAbsolutePath(const string &fileName);
 
 	inline bool isExist(const string &fileName);
-
-    void *wait_for_connecting(TCPServer &data, void *threadid);
 
     bool establish_data_connection(void *data_connection);
 

@@ -14,7 +14,7 @@
 #include <string>
 
 #ifndef BUFSIZE
-#define BUFSIZE 1024
+#define BUFSIZE 1048576
 #endif
 
 class TCPClient
