@@ -455,9 +455,17 @@ int FTPClient::get(const vector<string> &args) {
 
     FILE *output;
     if (args.size() == 1) {
+        if (isExist(args[0])) {
+            cout << "File with name " + args[0] + " is already exist\n";
+            return -1;
+        }
         output = fopen(args[0].c_str(), "wb");
         cout << "Local: " << args[0] << "\n" << "Remote: " << args[0] << endl;
     } else if (args.size() == 2) {
+        if (isExist(args[1])) {
+            cout << "File with name " + args[1] + " is already exist\n";
+            return -1;
+        }
         output = fopen(args[1].c_str(), "wb");
         cout << "Local: " << args[1] << "\n" << "Remote: " << args[0] << endl;
     }
