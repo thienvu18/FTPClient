@@ -462,6 +462,11 @@ int FTPClient::get(const vector<string> &args) {
         cout << "Local: " << args[1] << "\n" << "Remote: " << args[0] << endl;
     }
 
+    if (output == nullptr) {
+        cout << "Can not open local file\n";
+        return -1;
+    }
+
     void *data_connection;
     passive_mode ? data_connection = new TCPClient : data_connection = new TCPServer;
 
