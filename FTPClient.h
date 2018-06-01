@@ -19,8 +19,8 @@
 #define TIMEOUT 500
 #define DEFAULT_PORT 21
 
-#define PBSTR "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||"
-#define PBWIDTH 60
+#define PBSTR "||||||||||||||||||||||||||||||||||||||||||||||||||"
+#define PBWIDTH 50
 
 using namespace std;
 

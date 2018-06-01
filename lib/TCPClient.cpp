@@ -91,5 +91,4 @@ bool TCPClient::isConnected() {
 
 void TCPClient::close_connection() {
     close(sock);
-    printf("%d", sock);
 }

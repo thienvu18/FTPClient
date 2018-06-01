@@ -308,7 +308,7 @@ int FTPClient::lcd(const vector<string> &args) {
         cout << "Local directory now " << getCurrentPath() << endl;
     } else if (isExist(args[0]) == 1) {
         int n = chdir(args[0].c_str());
-        cout << "Local directory now " << args[0] << endl;
+        cout << "Local directory now " << getCurrentPath() << endl;
         return n;
     } else {
         cout << "No such directory\n";
@@ -455,17 +455,9 @@ int FTPClient::get(const vector<string> &args) {
 
     FILE *output;
     if (args.size() == 1) {
-        if (isExist(args[0])) {
-            cout << "File with name " + args[0] + " is already exist\n";
-            return -1;
-        }
         output = fopen(args[0].c_str(), "wb");
         cout << "Local: " << args[0] << "\n" << "Remote: " << args[0] << endl;
     } else if (args.size() == 2) {
-        if (isExist(args[1])) {
-            cout << "File with name " + args[1] + " is already exist\n";
-            return -1;
-        }
         output = fopen(args[1].c_str(), "wb");
         cout << "Local: " << args[1] << "\n" << "Remote: " << args[0] << endl;
     }
@@ -753,7 +745,7 @@ void FTPClient::printProgress(const double &percentage, double speed) {
     int lpad = (int) (percentage * PBWIDTH);
     int rpad = PBWIDTH - lpad;
     if (speed >= 0)
-        printf("\r%3d%% [%.*s%*s]\t\t%10.2f KB/s", val, lpad, PBSTR, rpad, "", speed);
+        printf("\r%3d%% [%.*s%*s]%10.2f KB/s", val, lpad, PBSTR, rpad, "", speed);
     else printf("\r%3d%% [%.*s%*s]", val, lpad, PBSTR, rpad, "");
     if (val >= 100) printf("\n");
     fflush(stdout);
